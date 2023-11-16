@@ -1,0 +1,28 @@
+{
+  "name": "mandatoryii",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^2.4.2",
+    "svelte": "^4.0.5",
+    "vite": "^4.4.5"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-brands-svg-icons": "^6.4.2",
+    "@fortawesome/free-regular-svg-icons": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@picocss/pico": "^1.5.10",
+    "svelte-french-toast": "^1.2.0",
+    "svelte-icons": "^2.1.0",
+    "svelte-navigator": "^3.2.2",
+    "svelte-routing": "^2.5.0"
+  }
+}
