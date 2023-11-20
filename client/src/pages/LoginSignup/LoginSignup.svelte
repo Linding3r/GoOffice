@@ -4,6 +4,7 @@
     import { user } from '../../stores/userStore.js';
     import { BASE_URL } from '../../stores/global.js';
     import { checkAuthStatus } from '../../component/Authentication/authentication.js'
+    import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
 
     let rightPanelActive = false;
 
@@ -87,6 +88,7 @@
         );
     }
 </script>
+<div class="switch"><DarkmodeSwitch/></div>
 
 <div class="container" class:right-panel-active={rightPanelActive}>
     <div class="form-container sign-up-container">
@@ -129,6 +131,13 @@
 
     * {
         box-sizing: border-box;
+    }
+
+    .switch{
+        position: absolute;
+        right: 10px;
+        top: 15px;
+        
     }
 
     h1 {

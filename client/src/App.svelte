@@ -17,6 +17,7 @@
     import FaCalendarCheck from 'svelte-icons/fa/FaCalendarCheck.svelte'
     import FaHome from 'svelte-icons/fa/FaHome.svelte'
     import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte'
+    import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte'
 
     async function logout() {
         try {
@@ -58,7 +59,7 @@
             {#if $user.isAdmin === 1}
                 <Link to="/admin"><div class="icon"><FaUserCog/></div></Link>
             {/if}
-            <button class="logout-button" on:click={logout}>Logout</button>
+            <button on:click={logout}><div class="icon"><FaSignOutAlt/></div></button>
             <DarkmodeSwitch/>
         </nav>
     {/if}
@@ -90,36 +91,6 @@
         left: 0;
     }
 
-    .sidebar p {
-        display: block;
-        padding: 15px;
-        color: #f0f0f0;
-        text-decoration: none;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        font-weight: bold;
-    }
-
-    .logout-button {
-        background-color: #1b1c23;
-        border: none;
-        padding: 15px;
-        color: #f0f0f0;
-        text-decoration: none;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .logout-button:hover {
-        background-color: #3857ad;
-    }
-
-    .sidebar p:hover {
-        background-color: #3857ad;
-    }
-
     main {
         margin-left: 100px;
         padding: 20px;
@@ -137,15 +108,14 @@
     }
 
     .icon {
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     color: #f0f0f0;
     display: block;
     color: #f0f0f0;
     text-decoration: none;
     margin-bottom: 10px;
     margin-left: 15px;
-    padding: 15px;
   }
 
   .icon:hover{

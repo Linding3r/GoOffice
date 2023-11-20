@@ -2,6 +2,7 @@
     import toast, { Toaster } from 'svelte-french-toast';
     import { navigate } from 'svelte-navigator';
     import { BASE_URL } from '../../stores/global.js';
+    import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
 
     let registeredEmail;
 
@@ -33,7 +34,7 @@
 </script>
 
 <Toaster />
-
+<div class="switch"><DarkmodeSwitch/></div>
 <div class="container">
     <div class="form-container sign-in-container">
         <form on:submit|preventDefault={requestNewPassword}>
@@ -48,6 +49,13 @@
 <style>
     * {
         box-sizing: border-box;
+    }
+
+    .switch{
+        position: absolute;
+        right: 10px;
+        top: 15px;
+        
     }
 
     h1 {

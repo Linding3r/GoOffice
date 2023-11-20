@@ -6,9 +6,6 @@ const app = express();
 
 import session from 'express-session';
 
-//import connectSqlite from 'connect-sqlite3';
-//const SQLiteStore = connectSqlite(session);
-
 import path from "path"
 app.use(express.static(path.resolve("../client/dist")))
 
@@ -27,7 +24,6 @@ import { rateLimit } from 'express-rate-limit';
 app.use(express.json());
 
 app.use(session({
-    //store: new SQLiteStore({ db: 'sessions.db' }),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,

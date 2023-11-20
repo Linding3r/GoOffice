@@ -30,10 +30,11 @@ router.post('/api/auth/request-password-reset', async (req, res) => {
             },
         });
 
-        const html = `<p>Please click on the following link, or paste this into your browser to complete the process:</p><br><br><a href="${resetLink}">Reset Link</a>`;
+
+        const html = `<p>Please click on the following link to reset your password:</p><br><br><a href="${resetLink}">Reset Link</a>`;
         try {
             await transporter.sendMail({
-                from: '"Mandatory II" <no-reply@lindinger.io>',
+                from: '"Go Office" <no-reply@goautonomous.io>',
                 to: email,
                 subject: `Password Reset`,
                 html: html,
