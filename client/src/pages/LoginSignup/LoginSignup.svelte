@@ -12,8 +12,8 @@
         rightPanelActive = !rightPanelActive;
     }
 
-    let loginEmail;
-    let loginPassword;
+    let loginEmail = "thomas@goautonomous.io";
+    let loginPassword = "admin";
     let confirmPassword;
     let signupPassword;
     let signupEmail;
@@ -104,7 +104,7 @@
     <div class="form-container sign-in-container">
         <form class="signin-form" on:submit|preventDefault={login}>
             <h1 style="margin-bottom: 20px">Sign in</h1>
-            <input type="email" bind:value={loginEmail} placeholder="Email" required />
+            <input type="email" bind:value={loginEmail} placeholder="Email" required/>
             <input type="password" bind:value={loginPassword} placeholder="Password" required />
             <button style="margin-top: 20px;">Sign In</button>
             <a href="/forgottenPassword">Forgot your password?</a>
@@ -159,8 +159,8 @@
 
     button {
         border-radius: 20px;
-        border: 1px solid #304d9d;
-        background-color: #304d9d;
+        border: 1px solid #1b1c23;
+        background-color: #1b1c23;
         color: #ffffff;
         font-size: 12px;
         font-weight: bold;
@@ -288,9 +288,9 @@
     }
 
     .overlay {
-        background: #304d9d;
-        background: -webkit-linear-gradient(to right, #304d9d, #4161b7);
-        background: linear-gradient(to right, #304d9d, #4161b7);
+        background: #1b1c23;
+        background: -webkit-linear-gradient(to right, #1b1c23, #272936);
+        background: linear-gradient(to right, #1b1c23, #272936);
         background-repeat: no-repeat;
         background-size: cover;
         background-position: 0 0;

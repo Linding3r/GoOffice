@@ -99,11 +99,11 @@
     :global(body) {
         background-color: #f8f5ef;
         transition: background-color 0.3s;
-        color: #4c6fff
+        color: #1b1c23;
     }
 
     :global(body.dark-mode) {
-        background-color: #1d3040;
+        background-color: #272936;
         color: #bfc2c7;
     }
 

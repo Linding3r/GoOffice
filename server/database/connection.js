@@ -4,10 +4,10 @@ config();
 
 
 const connection = createConnection({
-    host: '35.198.155.174',
+    host: 'localhost',
     user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_CLOUD_PASSWORD,
-    database: 'go_office',
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
 });
 
 connection.connect(error => {

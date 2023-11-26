@@ -26,6 +26,17 @@ app.use(
     })
 );
 
+import { Server } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+
+const server = Server(app);
+export const io = new SocketIOServer(server);
+
+io.on('connection', (socket) => {
+  socket.on('disconnect', () => {
+  });
+});
+
 import helmet from 'helmet';
 app.use(helmet());
 
@@ -44,7 +55,7 @@ const allRoutesLimiter = rateLimit({
 app.use(allRoutesLimiter);
 
 const authRateLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000,
+    windowMs: 5 * 60 * 1000, // 5 minutes
     limit: 20,
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
@@ -67,12 +78,15 @@ app.use(nodemailerRouters);
 import bookingRouters from './routers/bookingRouters.js';
 app.use(bookingRouters);
 
+import userRouters from './routers/userRouters.js';
+app.use(userRouters);
+
 app.get('*', (req, res) => {
     res.sendFile(path.resolve('../client/dist/index.html'));
 });
 
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log('Server running on port', PORT);
-});
+  });

@@ -20,6 +20,8 @@
     "@fortawesome/free-regular-svg-icons": "^6.4.2",
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@picocss/pico": "^1.5.10",
+    "moment": "^2.29.4",
+    "socket.io-client": "^4.7.2",
     "svelte-french-toast": "^1.2.0",
     "svelte-icons": "^2.1.0",
     "svelte-navigator": "^3.2.2",

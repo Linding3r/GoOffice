@@ -92,8 +92,8 @@
 
     button {
         border-radius: 20px;
-        border: 1px solid #304d9d;
-        background-color: #304d9d;
+        border: 1px solid #1b1c23;
+        background-color: #1b1c23;
         color: #ffffff;
         font-size: 12px;
         font-weight: bold;

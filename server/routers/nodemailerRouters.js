@@ -8,45 +8,49 @@ import db from '../database/connection.js';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 
-
-
 router.post('/api/auth/request-password-reset', async (req, res) => {
     const { email } = req.body;
-    const user = await db.get(`SELECT * FROM users WHERE email = ?`, email);
 
-    if (user) {
-        const resetToken = crypto.randomBytes(20).toString('hex');
-        const expireTime = Date.now() + 3600000;
+    try {
+        const [users] = await db.promise().query(`SELECT * FROM users WHERE email = ?`, [email]);
+        const user = users[0];
 
-        await db.run(`UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE email = ?`, [resetToken, expireTime, email]);
+        if (user) {
+            const resetToken = crypto.randomBytes(20).toString('hex');
+            const expireTime = new Date(Date.now() + 3600000);
 
-        const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
-        const transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: process.env.SMTP_PORT,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASSWORD,
-            },
-        });
+            await db.promise().query(`UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE email = ?`, [resetToken, expireTime, email]);
 
-
-        const html = `<p>Please click on the following link to reset your password:</p><br><br><a href="${resetLink}">Reset Link</a>`;
-        try {
-            await transporter.sendMail({
-                from: '"Go Office" <no-reply@goautonomous.io>',
-                to: email,
-                subject: `Password Reset`,
-                html: html,
+            const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST,
+                port: process.env.SMTP_PORT,
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASSWORD,
+                },
             });
 
-            res.status(200).json({ success: true, message: 'Reset password link sent to email' });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ success: false, message: 'Error sending email' });
+            const html = `<p>Please click on the following link to reset your password:</p><br><br><a href="${resetLink}">Reset Link</a>`;
+            try {
+                await transporter.sendMail({
+                    from: '"Go Office" <no-reply@goautonomous.io>',
+                    to: email,
+                    subject: `Password Reset`,
+                    html: html,
+                });
+
+                res.status(200).json({ success: true, message: 'Reset password link sent to email' });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ success: false, message: 'Error sending email' });
+            }
+        } else {
+            res.status(404).json({ message: `No user found with email: ${email}` });
         }
-    } else {
-        res.status(404).json({ message: `No user found with email: ${email}` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error in database operation' });
     }
 });
 
