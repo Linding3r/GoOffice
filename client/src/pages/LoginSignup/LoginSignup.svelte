@@ -4,6 +4,7 @@
     import { user } from '../../stores/userStore.js';
     import { checkAuthStatus } from '../../component/Authentication/authentication.js'
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
+    import {Link} from 'svelte-navigator';
 
     let rightPanelActive = false;
 
@@ -106,7 +107,7 @@
             <input type="email" bind:value={loginEmail} placeholder="Email" required/>
             <input type="password" bind:value={loginPassword} placeholder="Password" required />
             <button style="margin-top: 20px;">Sign In</button>
-            <a href="/forgottenPassword">Forgot your password?</a>
+            <Link to="/forgottenPassword"><div class="link">Forgot your password?</div></Link>
         </form>
     </div>
     <div class="overlay-container">
@@ -152,7 +153,7 @@
         margin: 20px 0 30px;
     }
 
-    a {
+    .link {
         margin-top: 30px;
     }
 

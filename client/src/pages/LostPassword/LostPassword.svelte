@@ -2,6 +2,7 @@
     import toast, { Toaster } from 'svelte-french-toast';
     import { navigate } from 'svelte-navigator';
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
+    import { Link } from 'svelte-navigator';
 
     let registeredEmail;
 
@@ -32,14 +33,14 @@
 </script>
 
 <Toaster />
-<div class="switch"><DarkmodeSwitch/></div>
+<div class="switch"><DarkmodeSwitch /></div>
 <div class="container">
     <div class="form-container sign-in-container">
         <form on:submit|preventDefault={requestNewPassword}>
             <h1 style="margin-bottom: 20px">Request New Password</h1>
             <input type="email" bind:value={registeredEmail} placeholder="Email" required />
             <button style="margin-top: 15px;">Request Reset Link</button>
-            <a href="/">Back to Sign In</a>
+            <Link to="/"><div class="link">Back to Sign In</div></Link>
         </form>
     </div>
 </div>
@@ -49,11 +50,10 @@
         box-sizing: border-box;
     }
 
-    .switch{
+    .switch {
         position: absolute;
         right: 10px;
         top: 15px;
-        
     }
 
     h1 {
@@ -61,7 +61,7 @@
         margin: 0;
         color: #333;
     }
-    a {
+    .link {
         margin-top: 20px;
     }
 
@@ -109,7 +109,9 @@
     .container {
         background-color: #fff;
         border-radius: 10px;
-        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+        box-shadow:
+            0 14px 28px rgba(0, 0, 0, 0.25),
+            0 10px 10px rgba(0, 0, 0, 0.22);
         position: relative;
         overflow: hidden;
         width: 500px;
