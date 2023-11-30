@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "install": "npm i --legacy-peer-deps",
     "build:watch": "vite build --watch",
     "preview": "vite preview"
   },

@@ -24,7 +24,7 @@
 
     async function logout() {
         try {
-            const response = await fetch($BASE_URL + '/api/auth/logout', {
+            const response = await fetch('/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include',
             });
