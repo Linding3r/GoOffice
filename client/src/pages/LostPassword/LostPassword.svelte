@@ -1,14 +1,13 @@
 <script>
     import toast, { Toaster } from 'svelte-french-toast';
     import { navigate } from 'svelte-navigator';
-    import { BASE_URL } from '../../stores/global.js';
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
 
     let registeredEmail;
 
     async function requestNewPassword() {
         toast.promise(
-            fetch(`${$BASE_URL}/api/auth/request-password-reset`, {
+            fetch('/api/auth/request-password-reset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: registeredEmail }),
@@ -22,7 +21,6 @@
                 .then(() => {
                     registeredEmail = '';
                     navigate('/');
-                    return 'Reset link sent! Please check your email.';
                 }),
             {
                 loading: 'Sending reset link...',

@@ -40,17 +40,15 @@ router.post('/api/auth/request-password-reset', async (req, res) => {
                     html: html,
                 });
 
-                res.status(200).json({ success: true, message: 'Reset password link sent to email' });
+                res.status(200).json({ message: 'Reset password link sent to email' });
             } catch (error) {
-                console.error(error);
-                res.status(500).json({ success: false, message: 'Error sending email' });
+                res.status(500).json({ message: 'Error sending email' });
             }
         } else {
             res.status(404).json({ message: `No user found with email: ${email}` });
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error in database operation' });
+        res.status(500).json({ message: 'Error in database operation' });
     }
 });
 

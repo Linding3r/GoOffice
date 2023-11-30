@@ -2,7 +2,7 @@ import { Router } from 'express';
 import db from '../database/connection.js';
 import moment from 'moment';
 import { io } from '../app.js';
-import { isAuthenticated } from '../util/checkAuth.js';
+import { isAuthenticated , isAdmin} from '../util/checkAuth.js';
 
 const router = Router();
 
@@ -98,5 +98,48 @@ router.post('/api/bookings/cancel-shift',isAuthenticated, async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
+    const { start_date, end_date, reason } = req.body;
+    try {
+        const result = await db.promise().query(
+            `INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, 
+            [start_date, end_date, reason]
+        );
+        res.status(201).json({ message: 'Closed period added successfully', id: result[0].insertId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+router.delete('/api/closed-days/:id', isAuthenticated, isAdmin, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await db.promise().query(`DELETE FROM closed_days WHERE id = ?`, [id]);
+        res.status(200).json({ message: 'Closed days removed successfully' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.get('/api/closed-days', isAuthenticated, async (req, res) => {
+    try {
+        const [closedDays] = await db.promise().query(`SELECT * FROM closed_days`);
+        res.status(200).json(closedDays);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
+
+
+
+
 
 export default router;

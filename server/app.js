@@ -47,7 +47,7 @@ app.use(express.json());
 
 const allRoutesLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    limit: 200,
+    limit: 500,
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
 });
@@ -56,7 +56,7 @@ app.use(allRoutesLimiter);
 
 const authRateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, // 5 minutes
-    limit: 20,
+    limit: 50,
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
 });
@@ -75,7 +75,7 @@ app.use(signupRouters);
 import nodemailerRouters from './routers/nodemailerRouters.js';
 app.use(nodemailerRouters);
 
-import bookingRouters from './routers/bookingRouters.js';
+import bookingRouters from './routers/scheduleRouters.js';
 app.use(bookingRouters);
 
 import userRouters from './routers/userRouters.js';

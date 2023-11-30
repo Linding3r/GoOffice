@@ -2,7 +2,6 @@
     import toast from 'svelte-french-toast';
     import { navigate } from 'svelte-navigator';
     import { user } from '../../stores/userStore.js';
-    import { BASE_URL } from '../../stores/global.js';
     import { checkAuthStatus } from '../../component/Authentication/authentication.js'
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
 
@@ -21,7 +20,7 @@
 
     async function login() {
         toast.promise(
-            fetch($BASE_URL + '/api/auth/login', {
+            fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -62,7 +61,7 @@
         }
 
         toast.promise(
-            fetch($BASE_URL + '/api/auth/signup', {
+            fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: signupEmail, password: signupPassword, name: name }),

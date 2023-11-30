@@ -10,30 +10,47 @@
     let bookings = {};
     let userBookings = {};
     let loading = true;
-
+    let closedDays = [];
 
     onMount(() => {
-        fetchBookings();
-        socket.on('bookingUpdate', fetchBookings);
+        if ($user) {
+            fetchClosedDays();
+            fetchBookings();
+            socket.on('bookingUpdate', fetchBookings);
+        }
+        return () => {
+            socket.off('bookingUpdate', fetchBookings);
+        };
     });
+
+    function isDisabled(dateString) {
+        const givenDate = new Date(dateString.split('-').reverse().join('-'));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return givenDate < today;
+    }
 
     async function fetchBookings() {
         try {
-            const response = await fetch($BASE_URL + '/api/bookings/four-weeks');
+            const response = await fetch('/api/bookings/four-weeks');
             if (response.ok) {
                 bookings = await response.json();
-                preprocessBookings(); 
+                preprocessBookings();
                 loading = false;
             } else {
-                throw new Error('Server responded with an error');
+                console.error('Response Error:', response);
+                const errorText = await response.text();
+                throw new Error(errorText || 'Server responded with an error');
             }
         } catch (error) {
+            console.error('Fetch Error:', error);
             toast.error('Error fetching bookings: ' + error.message);
         }
     }
 
     function preprocessBookings() {
-        const updatedUserBookings = {}; 
+        const updatedUserBookings = {};
         Object.keys(bookings).forEach(date => {
             const morningBooking = bookings[date].morning.bookings.find(booking => booking.name === $user.name);
             const afternoonBooking = bookings[date].afternoon.bookings.find(booking => booking.name === $user.name);
@@ -43,7 +60,7 @@
                 afternoon: afternoonBooking,
             };
         });
-        userBookings = updatedUserBookings; 
+        userBookings = updatedUserBookings;
     }
 
     function formatDate(dateString) {
@@ -56,48 +73,96 @@
         });
     }
 
+    function getWeekNumber(date) {
+        const currentDate = new Date(date.split('-').reverse().join('-'));
+        const startDate = new Date(currentDate.getFullYear(), 0, 1);
+        const days = Math.floor((currentDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
+        return Math.ceil(days / 7);
+    }
+
     function processBookings(date) {
-        const combinedBookings = {};
+        const combinedBookings = [];
 
         bookings[date].morning.bookings.forEach(booking => {
-            combinedBookings[booking.name] = '☀️';
+            combinedBookings.push({
+                name: booking.name,
+                icon: '☀️',
+                id: booking.id,
+            });
         });
 
         bookings[date].afternoon.bookings.forEach(booking => {
-            combinedBookings[booking.name] = combinedBookings[booking.name] ? '☀️🌚' : '🌚';
+            let existingBooking = combinedBookings.find(b => b.name === booking.name);
+            if (existingBooking) {
+                existingBooking.icon += '🌚';
+            } else {
+                combinedBookings.push({
+                    name: booking.name,
+                    icon: '🌚',
+                    id: booking.id,
+                });
+            }
         });
 
         return combinedBookings;
     }
 
     async function bookShift(date, type) {
-        fetch($BASE_URL + '/api/bookings/book-shift', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shift_date: date, shift_type: type }),
-        }).then(response => {
+        try {
+            const response = await fetch('/api/bookings/book-shift', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shift_date: date, shift_type: type }),
+            });
+            const data = await response.json();
+
             if (!response.ok) {
-                toast.error('error');
-            } else {
-                toast.success('Shift successfully booked!');
+                throw new Error(data.message || 'Error booking shift');
             }
-        });
+        } catch (error) {
+            toast.error('Booking failed: ' + error.message);
+        }
     }
 
     async function cancelShift(bookingId) {
-        fetch($BASE_URL + '/api/bookings/cancel-shift', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ booking_id: bookingId }),
-        }).then(response => {
+        try {
+            const response = await fetch('/api/bookings/cancel-shift', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ booking_id: bookingId }),
+            });
+            const data = await response.json();
+
             if (!response.ok) {
-                toast.error('error');
-            } else {
-                toast.success('Shift successfully cancled!');
+                throw new Error(data.message || 'Error canceling shift');
             }
-        });
+        } catch (error) {
+            toast.error('Cancellation failed: ' + error.message);
+        }
     }
 
+    async function fetchClosedDays() {
+        try {
+            const response = await fetch('/api/closed-days');
+
+            const data = await response.json();
+            closedDays = data.map(period => ({
+                start: new Date(period.start_date),
+                end: new Date(period.end_date),
+                reason: period.reason,
+            }));
+            if (!response.ok) {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            toast.error('Error fetching closed days: ' + error.message);
+        }
+    }
+
+    function isClosedDay(dateString) {
+        const givenDate = new Date(dateString.split('-').reverse().join('-'));
+        return closedDays.some(period => givenDate >= period.start && givenDate <= period.end);
+    }
 </script>
 
 <Toaster />
@@ -107,27 +172,43 @@
         <img src="../../../public/img/infinite-spinner.svg" style="width:100px height=100px" alt="Spinner" />
     {:else}
         {#each Object.keys(bookings) as date (date)}
+            {#if new Date(date.split('-').reverse().join('-')).getDay() == 1}
+                <div class="week-number">Week {getWeekNumber(date)}</div>
+            {/if}
             <div class="date-row">
-                <div>{formatDate(date)}</div>
-                <div class="shift-info">
-                    <p style="margin-right:30px">☀️ - {bookings[date].morning.spotsLeft} spots left</p>
-                    <p>🌚 - {bookings[date].afternoon.spotsLeft} spots left</p>
-                </div>
-            </div>
-            {#if !userBookings[date].morning}
-                <button class="book-button" on:click={() => bookShift(date, 'morning')}> Book Morning </button>
-            {:else}
-                <button class="cancel-button" on:click={() => cancelShift(userBookings[date].morning.bookingId)}>Cancel Morning</button>
-            {/if}
+                <div class="date">{formatDate(date)}</div>
+                {#if isClosedDay(date)}
+                    <div class="closed-day">Office Closed</div>
+                {:else}
+                    <div class="shift-info">
+                        <p style="margin-right:30px">☀️ - {bookings[date].morning.spotsLeft} spots left</p>
+                        <p>🌚 - {bookings[date].afternoon.spotsLeft} spots left</p>
+                    </div>
+                {/if}
 
-            {#if !userBookings[date].afternoon}
-                <button class="book-button" on:click={() => bookShift(date, 'afternoon')}>Book Afternoon</button>
-            {:else}
-                <button class="cancel-button" on:click={() => cancelShift(userBookings[date].afternoon.bookingId)}>Cancel Afternoon</button>
-            {/if}
+                {#if !isClosedDay(date)}
+                    {#if !userBookings[date].morning}
+                        <button class="book-button" disabled={isDisabled(date)} on:click={() => bookShift(date, 'morning')}> Book Morning </button>
+                    {:else}
+                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].morning.bookingId)}
+                            >Cancel Morning</button
+                        >
+                    {/if}
+
+                    {#if !userBookings[date].afternoon}
+                        <button class="book-button" disabled={isDisabled(date)} on:click={() => bookShift(date, 'afternoon')}>Book Afternoon</button>
+                    {:else}
+                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].afternoon.bookingId)}
+                            >Cancel Afternoon</button
+                        >
+                    {/if}
+                {/if}
+            </div>
             <div class="bookings-list">
-                {#each Object.entries(processBookings(date)) as [name, icons]}
-                    <div class="booking-entry">{name} - {icons}</div>
+                {#each processBookings(date) as booking}
+                    <div class="booking-entry">
+                        <span>{booking.name} - {booking.icon}</span>
+                    </div>
                 {/each}
             </div>
         {/each}
@@ -136,36 +217,129 @@
 
 <style>
     .booking-container {
-        max-width: 600px;
-        margin: auto;
+        max-width: calc(100vw - 150px);
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin: 20px auto;
+        max-width: calc(100vw - 140px);
     }
+
     .date-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 10px;
+        background-color: #f9f9f9;
+        margin: 10px 0;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid #eee;
+        margin-bottom: 5px;
     }
+
+    .date{
+        font-weight: bold;
+    }
+
     .shift-info {
         display: flex;
         align-items: center;
     }
+
     .bookings-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
         margin-top: 10px;
-        border-bottom: 1px solid #ccc;
+        margin-bottom: 50px;
     }
+
     .booking-entry {
         padding: 5px;
-        margin-bottom: 5px;
+        background-color: #eef;
         border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .book-button,
+    .cancel-button {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 5px;
+        transition: background-color 0.2s;
     }
 
     .book-button {
-        background-color: #f0f0f0;
-        color: #4c6fff;
+        background-color: #535bf2;
+        color: #fff;
+    }
+
+    .book-button:hover {
+        background-color: rgb(51, 61, 240);
     }
 
     .cancel-button {
-        background-color: #ff8b8b;
-        color: #f0f0f0;
+        background-color: #ff6b6b;
+        color: white;
+    }
+
+    .cancel-button:hover {
+        background-color: #ff4c4c;
+    }
+
+    button:disabled {
+        background-color: #ccc;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    button:disabled:hover{
+        background-color: #ccc;
+    }
+
+    .week-number {
+        background-color: #f0f0f0;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 1.4em;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .closed-day {
+        color: grey;
+        font-weight: bold;
+    }
+
+    :global(body.dark-mode) .booking-container {
+        background-color: #272936;
+        color: #bfc2c7;
+    }
+
+    :global(body.dark-mode) .date-row {
+        background-color: #1b1c23;
+        color: #bfc2c7;
+        border-bottom: 1px solid #bfc2c7;
+    }
+
+    :global(body.dark-mode) .shift-info {
+        color: #bfc2c7;
+    }
+
+    :global(body.dark-mode) .booking-entry {
+        background-color: #333;
+        color: #bfc2c7;
+    }
+
+    :global(body.dark-mode) .week-number {
+        background-color: #1b1c23;
+        color: #bfc2c7;
     }
 </style>

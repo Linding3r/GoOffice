@@ -2,7 +2,6 @@
     import { onMount } from 'svelte';
     import { navigate } from 'svelte-navigator';
     import toast, { Toaster } from 'svelte-french-toast';
-    import { BASE_URL } from '../../stores/global.js';
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
 
     let token;
@@ -28,7 +27,7 @@
         }
 
         toast.promise(
-            fetch(`${$BASE_URL}/api/auth/reset-password`, {
+            fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, newPassword }),
