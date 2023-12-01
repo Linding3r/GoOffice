@@ -1,13 +1,11 @@
 {
-  "name": "12._mandatory_ii",
+  "name": "go_office",
   "version": "1.0.0",
-  "description": "",
+  "description": "Office App for Go Autonomous",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node app.js",
-    "build": "npm i",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",
