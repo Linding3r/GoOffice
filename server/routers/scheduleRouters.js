@@ -8,7 +8,7 @@ const router = Router();
 
 
 router.get('/api/bookings/four-weeks',isAuthenticated, async (req, res) => {
-    const departmentId = req.session.user.department_id;
+    const departmentId = req.body.department_id || req.session.user.department_id;
     const startDate = moment().startOf('isoWeek').format('YYYY-MM-DD');
     const endDate = moment().add(3, 'weeks').endOf('isoWeek').format('YYYY-MM-DD');
 
@@ -49,27 +49,36 @@ router.get('/api/bookings/four-weeks',isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/api/bookings/book-shift',isAuthenticated, async (req, res) => {
+router.post('/api/bookings/book-shift', isAuthenticated, async (req, res) => {
     const user = req.session.user;
     const shift = req.body.shift_type;
     const date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
 
     try {
-        const [existing] = await db
-            .promise()
-            .query(`SELECT id FROM desk_bookings WHERE user_id = ? AND shift = ? AND date = ? AND department_id = ?`, [
-                user.user_id,
-                shift,
-                date,
-                user.department_id,
-            ]);
+        const [existing] = await db.promise().query(`SELECT id FROM desk_bookings WHERE user_id = ? AND shift = ? AND date = ? AND department_id = ?`, [
+            user.user_id,
+            shift,
+            date,
+            user.department_id,
+        ]);
 
         if (existing.length > 0) {
             return res.status(409).json({ message: 'Booking already exists for this date and shift.' });
         }
-        const [result] = await db
-            .promise()
-            .query(`INSERT INTO desk_bookings (user_id, department_id, shift, date) VALUES (?, ?, ?, ?)`, [user.user_id, user.department_id, shift, date]);
+
+        const [[{ spotsLeft }]] = await db.promise().query(`SELECT COUNT(*) as spotsLeft FROM desk_bookings WHERE shift = ? AND date = ? AND department_id = ?`, [
+            shift,
+            date,
+            user.department_id,
+        ]);
+
+        const [[{ num_desks }]] = await db.promise().query(`SELECT num_desks FROM departments WHERE id = ?`, [user.department_id]);
+
+        if (spotsLeft >= num_desks) {
+            return res.status(409).json({ message: 'No spots left for this shift.' });
+        }
+
+        const [result] = await db.promise().query(`INSERT INTO desk_bookings (user_id, department_id, shift, date) VALUES (?, ?, ?, ?)`, [user.user_id, user.department_id, shift, date]);
 
         if (result) {
             io.emit('bookingUpdate');
@@ -82,17 +91,20 @@ router.post('/api/bookings/book-shift',isAuthenticated, async (req, res) => {
     }
 });
 
+
 router.post('/api/bookings/cancel-shift',isAuthenticated, async (req, res) => {
     const bookingId = req.body.booking_id;
 
     try {
         const [result] = await db.promise().query(`DELETE FROM desk_bookings WHERE id=?`, [bookingId]);
-
+        if(!bookingId){
+            console.log("No booking number attached")
+        }
         if (result) {
             io.emit('bookingUpdate');
-            res.status(200).json({ message: 'Booking successful' });
+            res.status(200).json({ message: 'Booking successfully canceled' });
         } else {
-            res.status(400).json({ error: 'Booking failed' });
+            res.status(400).json({ error: 'Booking cancelation failed' });
         }
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
@@ -106,9 +118,8 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
             `INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, 
             [start_date, end_date, reason]
         );
-        res.status(201).json({ message: 'Closed period added successfully', id: result[0].insertId });
+        res.status(201).json({ message: 'Closed period added successfully' });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -121,7 +132,6 @@ router.delete('/api/closed-days/:id', isAuthenticated, isAdmin, async (req, res)
         await db.promise().query(`DELETE FROM closed_days WHERE id = ?`, [id]);
         res.status(200).json({ message: 'Closed days removed successfully' });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -131,7 +141,6 @@ router.get('/api/closed-days', isAuthenticated, async (req, res) => {
         const [closedDays] = await db.promise().query(`SELECT * FROM closed_days`);
         res.status(200).json(closedDays);
     } catch (err) {
-        console.error(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });

@@ -9,7 +9,6 @@
     import { Router, Link, Route, navigate } from 'svelte-navigator';
     import PrivateRoute from './component/PrivateRoutes/PrivateRoute.svelte';
     import { user } from './stores/userStore.js';
-    import { BASE_URL } from './stores/global.js';
     import LostPassword from './pages/LostPassword/LostPassword.svelte';
     import NoPermission from './pages/NoPermission/NoPermission.svelte';
     import { checkAuthStatus } from './component/Authentication/authentication.js';

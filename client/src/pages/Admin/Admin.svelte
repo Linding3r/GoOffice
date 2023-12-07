@@ -2,7 +2,9 @@
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
     import toast, { Toaster } from 'svelte-french-toast';
+    import { derived } from 'svelte/store';
 
+    const searchQuery = writable('');
     const users = writable([]);
 
     let today = new Date().toISOString().split('T')[0];
@@ -10,14 +12,45 @@
     let closedTo = '';
     let closedReason = '';
     let closedDays = [];
+    let departments = [];
+    let showScheduleManagement = false;
+    let showDepartmentManagement = false;
+    let showUserManagement = false;
 
-    const departments = [
-        { id: 1, name: 'Annotation' },
-        { id: 2, name: 'Platform' },
-        { id: 3, name: 'Machine Learning' },
-        { id: 4, name: 'Sales' },
-        { id: 5, name: 'Marketing' },
-    ];
+    const filteredUsers = derived(
+        [users, searchQuery],
+        ([$users, $searchQuery]) => {
+            return $users.filter(user => 
+                user.name.toLowerCase().includes($searchQuery.toLowerCase()) ||
+                user.email.toLowerCase().includes($searchQuery.toLowerCase())
+            );
+        }
+    );
+
+    async function fetchDepartments() {
+        const response = await fetch('/api/departments');
+        if (response.ok) {
+            const data = await response.json();
+            departments = data;
+        }
+    }
+
+    async function handleDepartmentUpdate(id,  event){
+        const selectElement = event.target;
+        let value = selectElement.value;
+
+        const response = await fetch(`api/department/update/${id}`,{
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({value}),
+        });
+        if(response.ok){
+            toast.success(`Successfully updated department`)
+        } else{
+            toast.error('Error updating department')
+        }
+        
+    }
 
     function handleUserUpdate(user, field, event) {
         const selectElement = event.target;
@@ -100,103 +133,150 @@
     }
 
     async function deleteClosedDay(id) {
-    try {
-        const response = await fetch(`/api/closed-days/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
+        try {
+            const response = await fetch(`/api/closed-days/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-        if (response.ok) {
-            toast.success('Closed day removed successfully');
-            closedDays = closedDays.filter(day => day.id !== id);
-        } else {
-            const errorData = await response.json();
-            toast.error('Failed to remove closed day: ' + errorData.message);
+            if (response.ok) {
+                toast.success('Closed day removed successfully');
+                closedDays = closedDays.filter(day => day.id !== id);
+            } else {
+                const errorData = await response.json();
+                toast.error('Failed to remove closed day: ' + errorData.message);
+            }
+        } catch (error) {
+            toast.error('Error removing closed day: ' + error.message);
         }
-    } catch (error) {
-        toast.error('Error removing closed day: ' + error.message);
     }
-}
 
+    function toggleSection(section) {
+        if (section === 'scheduleManagement') {
+            showScheduleManagement = !showScheduleManagement;
+        } else if (section === 'departmentManagement') {
+            showDepartmentManagement = !showDepartmentManagement;
+        } else if (section === 'userManagement') {
+            showUserManagement = !showUserManagement;
+        }
+    }
 
     onMount(() => {
         fetchUsers();
         fetchClosedDays();
+        fetchDepartments();
     });
 </script>
 
 <Toaster />
 <section class="admin-container">
     <div class="admin-section">
-        <h2 class="section-title">Manage Closed Periods</h2>
-        <div class="input-section">
-            <div class="input-group">
-                <label for="closedFrom">From Date</label>
-                <input type="date" id="closedFrom" bind:value={closedFrom} min={today} />
+    <button class="section-title-button" on:click={() => toggleSection('scheduleManagement')}>
+        <h2 class="section-title">
+            Schedule Management
+            <span class="dropdown-arrow">{showScheduleManagement ? '▲' : '▼'}</span>
+        </h2>
+    </button>
+    {#if showScheduleManagement}
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="closedFrom">From Date</label>
+                    <input type="date" id="closedFrom" bind:value={closedFrom} min={today} />
+                </div>
+                <div class="input-group">
+                    <label for="closedTo">To Date</label>
+                    <input type="date" id="closedTo" bind:value={closedTo} min={closedFrom} />
+                </div>
+                <div class="input-group">
+                    <label for="closedReason">Reason</label>
+                    <input type="text" id="closedReason" bind:value={closedReason} placeholder="Reason" />
+                </div>
+                <button on:click={addClosedPeriod} class="add-button">Add Closed Period</button>
             </div>
-            <div class="input-group">
-                <label for="closedTo">To Date</label>
-                <input type="date" id="closedTo" bind:value={closedTo} min={closedFrom} />
+
+            <div class="table-container">
+                <table class="closed-days-table">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each closedDays as closedDay (closedDay.id)}
+                            <tr>
+                                <td>{formatDate(closedDay.start_date)}</td>
+                                <td>{formatDate(closedDay.end_date)}</td>
+                                <td>{closedDay.reason}</td>
+                                <td>
+                                    <button class="delete-button" on:click={() => deleteClosedDay(closedDay.id)}>Delete</button>
+                                </td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
             </div>
-            <div class="input-group">
-                <label for="closedReason">Reason</label>
-                <input type="text" id="closedReason" bind:value={closedReason} placeholder="Reason"/>
-            </div>
-            <button on:click={addClosedPeriod} class="add-button">Add Closed Period</button>
+            {/if}
         </div>
 
-        <div class="table-container">
-            <table class="closed-days-table">
-                <thead>
-                    <tr>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Reason</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {#each closedDays as closedDay (closedDay.id)}
-                        <tr>
-                            <td>{formatDate(closedDay.start_date)}</td>
-                            <td>{formatDate(closedDay.end_date)}</td>
-                            <td>{closedDay.reason}</td>
-                            <td>
-                                <button class="delete-button" on:click={() => deleteClosedDay(closedDay.id)}>Delete</button>
-                            </td>
-                        </tr>
-                    {/each}
-                </tbody>
-            </table>
-        </div>
+    <div class="admin-section">
+        <button class="section-title-button" on:click={() => toggleSection('departmentManagement')}>
+            <h2 class="section-title">
+                Department Management
+                <span class="dropdown-arrow">{showDepartmentManagement ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showDepartmentManagement}
+            {#each departments as department (department.id)}
+            <div class="user-item">
+                <div class="user-name">{department.name}</div>
+                <div class="input-group">
+                    <label for="desk-number">Number of Desks</label>
+                    <input type="number" id="desk-number" value={department.num_desks}>
+                    <button on:click={() => handleDepartmentUpdate(department.id)} >Edit</button>
+                </div>
+            </div>
+            {/each}
+        {/if}
     </div>
 
     <div class="admin-section">
-        <h2 class="section-title">User Management</h2>
-        <div class="users-list">
-            {#each $users as user (user.id)}
-                <div class="user-item">
-                    <div class="user-name">{user.name}</div>
-                    <div class="user-email">{user.email}</div>
-                    <div class="user-actions">
-                        <select on:change={event => handleUserUpdate(user, 'is_fulltime', event)}>
-                            <option value="true" selected={user.is_fulltime}>Full-time</option>
-                            <option value="false" selected={!user.is_fulltime}>Part-time</option>
-                        </select>
-                        <select on:change={event => handleUserUpdate(user, 'department_id', event)}>
-                            {#each departments as department}
-                                <option value={department.id} selected={department.id === user.department_id}>{department.name}</option>
-                            {/each}
-                        </select>
-                    </div>
-                </div>
-            {/each}
+        <button class="section-title-button" on:click={() => toggleSection('userManagement')}>
+            <h2 class="section-title">
+                User Management
+                <span class="dropdown-arrow">{showUserManagement ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showUserManagement}
+        <div class="search-box">
+            <input type="text" placeholder="Search users..." bind:value={$searchQuery}>
         </div>
+        <div class="users-list">
+            {#each $filteredUsers as user (user.id)}
+                    <div class="user-item">
+                        <div class="user-name">{user.name}</div>
+                        <div class="user-email">{user.email}</div>
+                        <div class="user-actions">
+                            <select on:change={event => handleUserUpdate(user, 'is_fulltime', event)}>
+                                <option value="true" selected={user.is_fulltime}>Full-time</option>
+                                <option value="false" selected={!user.is_fulltime}>Part-time</option>
+                            </select>
+                            <select on:change={event => handleUserUpdate(user, 'department_id', event)}>
+                                {#each departments as department}
+                                    <option value={department.id} selected={department.id === user.department_id}>{department.name}</option>
+                                {/each}
+                            </select>
+                        </div>
+                    </div>
+                {/each}
+            </div>
+        {/if}
     </div>
 </section>
-
 
 <style>
     .users-list {
@@ -224,7 +304,6 @@
         margin-left: 10px;
     }
 
-    
     .closed-days-table {
         width: 100%;
         border-collapse: collapse;
@@ -256,8 +335,6 @@
     .delete-button:hover {
         background-color: #ff4c4c;
     }
-
-
 
     button {
         padding: 10px 20px;
@@ -309,10 +386,34 @@
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         padding: 20px;
+        min-width: 700px;
     }
 
     .section-title {
         margin: 0 0 20px 0;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .section-title-button {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+        width: 100%;
+        cursor: pointer;
+        color: black;
+    }
+
+    .section-title-button:hover{
+        transform: scale(1.05);
+    }
+
+    .dropdown-arrow {
+        font-size: 18px;
+        margin-left: 10px;
+        align-items: end;
     }
 
     .input-section {
@@ -328,7 +429,10 @@
         font-weight: bold;
     }
 
-    input, select, .add-button, .delete-button {
+    input,
+    select,
+    .add-button,
+    .delete-button {
         width: 100%;
         padding: 10px;
         margin-bottom: 10px;
@@ -351,42 +455,48 @@
         background-color: #ff4c4c;
     }
 
+    .search-box input[type='text'] {
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
 
     :global(body.dark-mode) .admin-container,
     :global(body.dark-mode) .admin-section {
-        background-color: #272936; 
-        color: #bfc2c7; 
+        background-color: #272936;
+        color: #bfc2c7;
     }
 
     :global(body.dark-mode) .closed-days-table,
     :global(body.dark-mode) .closed-days-table th,
     :global(body.dark-mode) .closed-days-table td {
-        background-color: #1b1c23; 
+        background-color: #1b1c23;
         color: #bfc2c7;
     }
 
     :global(body.dark-mode) .input-group label,
     :global(body.dark-mode) .section-title {
-        color: #bfc2c7; 
+        color: #bfc2c7;
     }
 
     :global(body.dark-mode) input[type='date'],
     :global(body.dark-mode) input[type='text'] {
-        background-color: #333; 
-        color: #bfc2c7; 
+        background-color: #333;
+        color: #bfc2c7;
     }
 
     :global(body.dark-mode) input[type='date']:focus,
     :global(body.dark-mode) input[type='text']:focus {
-        box-shadow: 0 0 5px rgba(83, 91, 242, 0.5); 
+        box-shadow: 0 0 5px rgba(83, 91, 242, 0.5);
     }
 
     :global(body.dark-mode) .add-button:hover {
-        background-color: rgb(51, 61, 240); 
+        background-color: rgb(51, 61, 240);
     }
 
     :global(body.dark-mode) .delete-button:hover {
-        background-color: #ff4c4c; 
+        background-color: #ff4c4c;
     }
-
 </style>

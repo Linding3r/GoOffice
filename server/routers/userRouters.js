@@ -1,24 +1,24 @@
 import { Router } from 'express';
 import db from '../database/connection.js';
 import { io } from '../app.js';
-import { isAuthenticated } from '../util/checkAuth.js';
+import { isAuthenticated, isAdmin } from '../util/checkAuth.js';
 
 const router = Router();
 
-router.get('/api/users/get-all', async (req, res) => {
+router.get('/api/users/get-all', isAuthenticated, isAdmin, async (req, res) => {
     try{
     const [users] = await db.promise().query('SELECT id, name, is_admin, is_fulltime, department_id, email FROM users;');
     if(users.length > 0){
         res.json({ users });
     } else {
-        res.send({ data: "No users to be found"})
+        res.status(200).json({ message: 'No users to be found' });
     }
     } catch (error){
-        res
+        res.status(500).json({ message: 'Error fetching all users' });
     }
 });
 
-router.post('/api/users/update-user', async (req, res) => {
+router.post('/api/users/update-user', isAuthenticated, isAdmin, async (req, res) => {
     const userReq = req.body.user;
     try{
         await db.promise().query(`UPDATE users SET is_fulltime=?, is_admin=?, department_id=? WHERE id=?`, [userReq.is_fulltime, userReq.is_admin, userReq.department_id, userReq.id]);

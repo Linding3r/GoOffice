@@ -32,9 +32,8 @@ import { Server as SocketIOServer } from 'socket.io';
 const server = Server(app);
 export const io = new SocketIOServer(server);
 
-io.on('connection', (socket) => {
-  socket.on('disconnect', () => {
-  });
+io.on('connection', socket => {
+    socket.on('disconnect', () => {});
 });
 
 import helmet from 'helmet';
@@ -43,7 +42,6 @@ app.use(helmet());
 import { rateLimit } from 'express-rate-limit';
 
 app.use(express.json());
-
 
 const allRoutesLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -81,6 +79,12 @@ app.use(bookingRouters);
 import userRouters from './routers/userRouters.js';
 app.use(userRouters);
 
+import departmentRouters from './routers/departmentRouters.js';
+app.use(departmentRouters);
+
+import newsRouters from './routers/newsRouters.js';
+app.use(newsRouters);
+
 app.get('*', (req, res) => {
     res.sendFile(path.resolve('../client/dist/index.html'));
 });
@@ -89,4 +93,4 @@ const PORT = process.env.PORT || 8080;
 
 server.listen(PORT, () => {
     console.log('Server running on port', PORT);
-  });
+});

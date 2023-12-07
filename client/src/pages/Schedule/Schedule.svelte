@@ -11,6 +11,7 @@
     let userBookings = {};
     let loading = true;
     let closedDays = [];
+    let currentUser = $user;
 
     onMount(() => {
         if ($user) {
@@ -81,30 +82,32 @@
     }
 
     function processBookings(date) {
-        const combinedBookings = [];
+        const combinedBookings = {};
 
         bookings[date].morning.bookings.forEach(booking => {
-            combinedBookings.push({
+            combinedBookings[booking.name] = {
                 name: booking.name,
                 icon: '☀️',
-                id: booking.id,
-            });
+                morningID: booking.bookingId,
+                afternoonID: null,
+            };
         });
 
         bookings[date].afternoon.bookings.forEach(booking => {
-            let existingBooking = combinedBookings.find(b => b.name === booking.name);
-            if (existingBooking) {
-                existingBooking.icon += '🌚';
+            if (combinedBookings[booking.name]) {
+                combinedBookings[booking.name].icon += '🌚';
+                combinedBookings[booking.name].afternoonID = booking.bookingId;
             } else {
-                combinedBookings.push({
+                combinedBookings[booking.name] = {
                     name: booking.name,
                     icon: '🌚',
-                    id: booking.id,
-                });
+                    morningID: null,
+                    afternoonID: booking.bookingId,
+                };
             }
         });
 
-        return combinedBookings;
+        return Object.values(combinedBookings);
     }
 
     async function bookShift(date, type) {
@@ -188,26 +191,52 @@
 
                 {#if !isClosedDay(date)}
                     {#if !userBookings[date].morning}
-                        <button class="book-button" disabled={isDisabled(date)} on:click={() => bookShift(date, 'morning')}> Book Morning </button>
-                    {:else}
-                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].morning.bookingId)}
-                            >Cancel Morning</button
+                        <button
+                            class="book-button"
+                            disabled={isDisabled(date) || bookings[date].morning.spotsLeft === 0}
+                            on:click={() => bookShift(date, 'morning')}
                         >
+                            Book Morning
+                        </button>
+                    {:else}
+                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].morning.bookingId)}>
+                            Cancel Morning
+                        </button>
                     {/if}
 
                     {#if !userBookings[date].afternoon}
-                        <button class="book-button" disabled={isDisabled(date)} on:click={() => bookShift(date, 'afternoon')}>Book Afternoon</button>
-                    {:else}
-                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].afternoon.bookingId)}
-                            >Cancel Afternoon</button
+                        <button
+                            class="book-button"
+                            disabled={isDisabled(date) || bookings[date].afternoon.spotsLeft === 0}
+                            on:click={() => bookShift(date, 'afternoon')}
                         >
+                            Book Afternoon
+                        </button>
+                    {:else}
+                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].afternoon.bookingId)}>
+                            Cancel Afternoon
+                        </button>
                     {/if}
                 {/if}
             </div>
             <div class="bookings-list">
                 {#each processBookings(date) as booking}
                     <div class="booking-entry">
-                        <span>{booking.name} - {booking.icon}</span>
+                        {#if currentUser.isAdmin === 1}
+                            <span
+                                >{booking.name} - {booking.icon}</span>
+                                <div class="admin-cancel-button-container">
+                                {#if booking.morningID}
+                                    <button class="admin-cancel" on:click={() => cancelShift(booking.morningID)}>☀️</button>
+                                {/if}
+                                {#if booking.afternoonID}
+                                    <button class="admin-cancel" on:click={() => cancelShift(booking.afternoonID)}>🌚</button>
+                                {/if}
+                                </div>
+                            
+                        {:else}
+                            <span>{booking.name} - {booking.icon}</span>
+                        {/if}
                     </div>
                 {/each}
             </div>
@@ -239,7 +268,7 @@
         margin-bottom: 5px;
     }
 
-    .date{
+    .date {
         font-weight: bold;
     }
 
@@ -299,7 +328,7 @@
         cursor: not-allowed;
     }
 
-    button:disabled:hover{
+    button:disabled:hover {
         background-color: #ccc;
     }
 
@@ -316,6 +345,15 @@
     .closed-day {
         color: grey;
         font-weight: bold;
+    }
+
+    .admin-cancel {
+        background-color: #ff6b6b;
+        font-size: x-small;
+    }
+
+    .admin-cancel:hover {
+        background-color: #ff4c4c;
     }
 
     :global(body.dark-mode) .booking-container {

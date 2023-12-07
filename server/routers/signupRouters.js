@@ -17,7 +17,7 @@ router.post('/api/auth/signup', async (req, res) => {
     } else {
         try {
             const hashedPassword = await passwordHasher(password);
-            const [result] = await db.promise().query(`INSERT INTO users (email, name, password) VALUES (?, ?, ?);`, [email, name, hashedPassword]);
+            const [result] = await db.promise().query(`INSERT INTO users (email, name, password, department_id) VALUES (?, ?, ?, ?);`, [email, name, hashedPassword, 6]);
             if (result) {
                 res.status(200).json({ message: 'Signup successful' });
             } else {
