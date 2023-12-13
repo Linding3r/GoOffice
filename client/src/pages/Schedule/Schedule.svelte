@@ -4,6 +4,8 @@
     import toast, { Toaster } from 'svelte-french-toast';
     import { user } from '../../stores/userStore';
     import io from 'socket.io-client';
+    import ConfirmationModal from '../../component/ConfirmationModal/ConfirmationModal.svelte';
+
 
     const socket = io($BASE_URL);
 
@@ -12,6 +14,8 @@
     let loading = true;
     let closedDays = [];
     let currentUser = $user;
+    let showConfirmationModal = false;
+    let currentBookingId = null;
 
     onMount(() => {
         if ($user) {
@@ -20,7 +24,7 @@
             socket.on('bookingUpdate', fetchBookings);
         }
         return () => {
-            socket.off('bookingUpdate', fetchBookings);
+            socket.disconnect();
         };
     });
 
@@ -34,18 +38,16 @@
 
     async function fetchBookings() {
         try {
-            const response = await fetch('/api/bookings/four-weeks');
+            const response = await fetch($BASE_URL + '/api/bookings/four-weeks');
             if (response.ok) {
                 bookings = await response.json();
                 preprocessBookings();
                 loading = false;
             } else {
-                console.error('Response Error:', response);
                 const errorText = await response.text();
                 throw new Error(errorText || 'Server responded with an error');
             }
         } catch (error) {
-            console.error('Fetch Error:', error);
             toast.error('Error fetching bookings: ' + error.message);
         }
     }
@@ -112,7 +114,7 @@
 
     async function bookShift(date, type) {
         try {
-            const response = await fetch('/api/bookings/book-shift', {
+            const response = await fetch($BASE_URL + '/api/bookings/book-shift', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shift_date: date, shift_type: type }),
@@ -129,7 +131,7 @@
 
     async function cancelShift(bookingId) {
         try {
-            const response = await fetch('/api/bookings/cancel-shift', {
+            const response = await fetch($BASE_URL + '/api/bookings/cancel-shift', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_id: bookingId }),
@@ -146,7 +148,7 @@
 
     async function fetchClosedDays() {
         try {
-            const response = await fetch('/api/closed-days');
+            const response = await fetch($BASE_URL + '/api/closed-days');
 
             const data = await response.json();
             closedDays = data.map(period => ({
@@ -166,9 +168,36 @@
         const givenDate = new Date(dateString.split('-').reverse().join('-'));
         return closedDays.some(period => givenDate >= period.start && givenDate <= period.end);
     }
+
+    function openConfirmationModal(bookingId) {
+        currentBookingId = bookingId;
+        showConfirmationModal = true;
+    }
+
+    async function confirmCancellation() {
+        if (currentBookingId) {
+            await cancelShift(currentBookingId);
+        }
+        showConfirmationModal = false;
+        currentBookingId = null;
+    }
+
+    function cancelCancellation() {
+        showConfirmationModal = false;
+        currentBookingId = null;
+    }
 </script>
 
 <Toaster />
+
+{#if showConfirmationModal}
+    <ConfirmationModal
+        message="Are you sure you want to cancel this booking?"
+        onConfirm={confirmCancellation}
+        onCancel={cancelCancellation}
+    />
+{/if}
+
 <div class="booking-container">
     <h1>Desk Bookings</h1>
     {#if loading}
@@ -199,7 +228,7 @@
                             Book Morning
                         </button>
                     {:else}
-                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].morning.bookingId)}>
+                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => openConfirmationModal(userBookings[date].morning.bookingId)}>
                             Cancel Morning
                         </button>
                     {/if}
@@ -213,7 +242,7 @@
                             Book Afternoon
                         </button>
                     {:else}
-                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => cancelShift(userBookings[date].afternoon.bookingId)}>
+                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => openConfirmationModal(userBookings[date].afternoon.bookingId)}>
                             Cancel Afternoon
                         </button>
                     {/if}
@@ -223,17 +252,17 @@
                 {#each processBookings(date) as booking}
                     <div class="booking-entry">
                         {#if currentUser.isAdmin === 1}
-                            <span
-                                >{booking.name} - {booking.icon}</span>
+                            <span>{booking.name} - {booking.icon}</span>
+                            {#if !isDisabled(date)}
                                 <div class="admin-cancel-button-container">
-                                {#if booking.morningID}
-                                    <button class="admin-cancel" on:click={() => cancelShift(booking.morningID)}>☀️</button>
-                                {/if}
-                                {#if booking.afternoonID}
-                                    <button class="admin-cancel" on:click={() => cancelShift(booking.afternoonID)}>🌚</button>
-                                {/if}
+                                    {#if booking.morningID}
+                                        <button class="admin-cancel" on:click={() => openConfirmationModal(booking.morningID)}>☀️</button>
+                                    {/if}
+                                    {#if booking.afternoonID}
+                                        <button class="admin-cancel" on:click={() => openConfirmationModal(booking.afternoonID)}>🌚</button>
+                                    {/if}
                                 </div>
-                            
+                            {/if}
                         {:else}
                             <span>{booking.name} - {booking.icon}</span>
                         {/if}

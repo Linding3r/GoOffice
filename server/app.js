@@ -44,19 +44,19 @@ import { rateLimit } from 'express-rate-limit';
 app.use(express.json());
 
 const allRoutesLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000, 
     limit: 500,
-    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    standardHeaders: 'draft-7', 
+    legacyHeaders: false, 
 });
 
 app.use(allRoutesLimiter);
 
 const authRateLimiter = rateLimit({
-    windowMs: 5 * 60 * 1000, // 5 minutes
+    windowMs: 5 * 60 * 1000, 
     limit: 50,
-    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    standardHeaders: 'draft-7', 
+    legacyHeaders: false, 
 });
 
 app.use('/api/auth/', authRateLimiter);

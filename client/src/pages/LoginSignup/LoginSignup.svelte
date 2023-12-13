@@ -2,9 +2,10 @@
     import toast from 'svelte-french-toast';
     import { navigate } from 'svelte-navigator';
     import { user } from '../../stores/userStore.js';
-    import { checkAuthStatus } from '../../component/Authentication/authentication.js'
+    import { checkAuthStatus } from '../../component/Authentication/authentication.js';
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
-    import {Link} from 'svelte-navigator';
+    import { Link } from 'svelte-navigator';
+    import { BASE_URL } from '../../stores/global.js';
 
     let rightPanelActive = false;
 
@@ -12,8 +13,8 @@
         rightPanelActive = !rightPanelActive;
     }
 
-    let loginEmail = "thomas@goautonomous.io";
-    let loginPassword = "admin";
+    let loginEmail = 'thomas@goautonomous.io';
+    let loginPassword = 'admin';
     let confirmPassword;
     let signupPassword;
     let signupEmail;
@@ -21,7 +22,7 @@
 
     async function login() {
         toast.promise(
-            fetch('/api/auth/login', {
+            fetch($BASE_URL + '/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -62,7 +63,7 @@
         }
 
         toast.promise(
-            fetch('/api/auth/signup', {
+            fetch($BASE_URL + '/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: signupEmail, password: signupPassword, name: name }),
@@ -88,7 +89,8 @@
         );
     }
 </script>
-<div class="switch"><DarkmodeSwitch/></div>
+
+<div class="switch"><DarkmodeSwitch /></div>
 
 <div class="container" class:right-panel-active={rightPanelActive}>
     <div class="form-container sign-up-container">
@@ -104,7 +106,7 @@
     <div class="form-container sign-in-container">
         <form class="signin-form" on:submit|preventDefault={login}>
             <h1 style="margin-bottom: 20px">Sign in</h1>
-            <input type="email" bind:value={loginEmail} placeholder="Email" required/>
+            <input type="email" bind:value={loginEmail} placeholder="Email" required />
             <input type="password" bind:value={loginPassword} placeholder="Password" required />
             <button style="margin-top: 20px;">Sign In</button>
             <Link to="/forgottenPassword"><div class="link">Forgot your password?</div></Link>
@@ -127,17 +129,14 @@
 </div>
 
 <style>
-
-
     * {
         box-sizing: border-box;
     }
 
-    .switch{
+    .switch {
         position: absolute;
         right: 10px;
         top: 15px;
-        
     }
 
     h1 {
@@ -210,7 +209,9 @@
     .container {
         background-color: #fff;
         border-radius: 10px;
-        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+        box-shadow:
+            0 14px 28px rgba(0, 0, 0, 0.25),
+            0 10px 10px rgba(0, 0, 0, 0.22);
         position: relative;
         overflow: hidden;
         width: 768px;

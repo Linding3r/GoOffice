@@ -3,6 +3,7 @@
     import { writable } from 'svelte/store';
     import toast, { Toaster } from 'svelte-french-toast';
     import { derived } from 'svelte/store';
+    import { BASE_URL } from '../../stores/global.js';
 
     const searchQuery = writable('');
     const users = writable([]);
@@ -11,50 +12,49 @@
     let closedFrom = today;
     let closedTo = '';
     let closedReason = '';
+    let title = '';
+    let description = '';
     let closedDays = [];
     let departments = [];
     let showScheduleManagement = false;
     let showDepartmentManagement = false;
     let showUserManagement = false;
+    let showNewsManagement = false;
 
-    const filteredUsers = derived(
-        [users, searchQuery],
-        ([$users, $searchQuery]) => {
-            return $users.filter(user => 
-                user.name.toLowerCase().includes($searchQuery.toLowerCase()) ||
-                user.email.toLowerCase().includes($searchQuery.toLowerCase())
-            );
-        }
-    );
+    const filteredUsers = derived([users, searchQuery], ([$users, $searchQuery]) => {
+        return $users.filter(
+            user => user.name.toLowerCase().includes($searchQuery.toLowerCase()) || user.email.toLowerCase().includes($searchQuery.toLowerCase())
+        );
+    });
 
     async function fetchDepartments() {
-        const response = await fetch('/api/departments');
+        const response = await fetch($BASE_URL + '/api/departments');
         if (response.ok) {
             const data = await response.json();
             departments = data;
         }
     }
 
-    async function handleDepartmentUpdate(id,  event){
+    async function handleDepartmentUpdate(id, event) {
         const selectElement = event.target;
         let value = selectElement.value;
 
-        const response = await fetch(`api/department/update/${id}`,{
+        const response = await fetch($BASE_URL + `api/department/update/${id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json'},
-            body: JSON.stringify({value}),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value }),
         });
-        if(response.ok){
-            toast.success(`Successfully updated department`)
-        } else{
-            toast.error('Error updating department')
+        if (response.ok) {
+            toast.success(`Successfully updated department`);
+        } else {
+            toast.error('Error updating department');
         }
-        
     }
 
     function handleUserUpdate(user, field, event) {
         const selectElement = event.target;
         let value = selectElement.value;
+
 
         if (field === 'is_fulltime' || field === 'is_admin') {
             value = value === 'true';
@@ -67,7 +67,7 @@
     }
 
     async function fetchUsers() {
-        const response = await fetch('/api/users/get-all');
+        const response = await fetch($BASE_URL + '/api/users/get-all');
         if (response.ok) {
             const data = await response.json();
             users.set(data.users);
@@ -93,7 +93,7 @@
             return;
         }
         try {
-            const response = await fetch('/api/closed-days', {
+            const response = await fetch($BASE_URL + '/api/closed-days', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -116,7 +116,7 @@
 
     async function fetchClosedDays() {
         try {
-            const response = await fetch('/api/closed-days');
+            const response = await fetch($BASE_URL + '/api/closed-days');
             if (response.ok) {
                 closedDays = await response.json();
             } else {
@@ -134,7 +134,7 @@
 
     async function deleteClosedDay(id) {
         try {
-            const response = await fetch(`/api/closed-days/${id}`, {
+            const response = await fetch($BASE_URL + `/api/closed-days/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -160,6 +160,29 @@
             showDepartmentManagement = !showDepartmentManagement;
         } else if (section === 'userManagement') {
             showUserManagement = !showUserManagement;
+        } else if (section === 'newsManagement') {
+            showNewsManagement = !showNewsManagement;
+        }
+    }
+
+    async function addNews() {
+        try {
+            const response = await fetch($BASE_URL + '/api/news/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title,
+                    description,
+                }),
+            });
+
+            if (response.ok) {
+                toast.success('News added successfully');
+            }
+        } catch (error) {
+            toast.error('An error occurred while adding news.');
         }
     }
 
@@ -173,13 +196,35 @@
 <Toaster />
 <section class="admin-container">
     <div class="admin-section">
-    <button class="section-title-button" on:click={() => toggleSection('scheduleManagement')}>
-        <h2 class="section-title">
-            Schedule Management
-            <span class="dropdown-arrow">{showScheduleManagement ? '▲' : '▼'}</span>
-        </h2>
-    </button>
-    {#if showScheduleManagement}
+        <button class="section-title-button" on:click={() => toggleSection('newsManagement')}>
+            <h2 class="section-title">
+                News Management
+                <span class="dropdown-arrow">{showNewsManagement ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showNewsManagement}
+            <div class="news-input-section">
+                <div class="input-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" bind:value={title} placeholder="Title" />
+                </div>
+                <div class="input-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" bind:value={description} placeholder="Description" rows="6"></textarea>
+                </div>
+                <button class="add-button" on:click={addNews}>Add News</button>
+            </div>
+        {/if}
+    </div>
+
+    <div class="admin-section">
+        <button class="section-title-button" on:click={() => toggleSection('scheduleManagement')}>
+            <h2 class="section-title">
+                Schedule Management
+                <span class="dropdown-arrow">{showScheduleManagement ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showScheduleManagement}
             <div class="input-section">
                 <div class="input-group">
                     <label for="closedFrom">From Date</label>
@@ -193,6 +238,7 @@
                     <label for="closedReason">Reason</label>
                     <input type="text" id="closedReason" bind:value={closedReason} placeholder="Reason" />
                 </div>
+                
                 <button on:click={addClosedPeriod} class="add-button">Add Closed Period</button>
             </div>
 
@@ -220,8 +266,8 @@
                     </tbody>
                 </table>
             </div>
-            {/if}
-        </div>
+        {/if}
+    </div>
 
     <div class="admin-section">
         <button class="section-title-button" on:click={() => toggleSection('departmentManagement')}>
@@ -232,14 +278,14 @@
         </button>
         {#if showDepartmentManagement}
             {#each departments as department (department.id)}
-            <div class="user-item">
-                <div class="user-name">{department.name}</div>
-                <div class="input-group">
-                    <label for="desk-number">Number of Desks</label>
-                    <input type="number" id="desk-number" value={department.num_desks}>
-                    <button on:click={() => handleDepartmentUpdate(department.id)} >Edit</button>
+                <div class="user-item">
+                    <div class="user-name">{department.name}</div>
+                    <div class="input-group">
+                        <label for="desk-number">Number of Desks</label>
+                        <input type="number" id="desk-number" value={department.num_desks} />
+                        <button on:click={() => handleDepartmentUpdate(department.id)}>Edit</button>
+                    </div>
                 </div>
-            </div>
             {/each}
         {/if}
     </div>
@@ -252,11 +298,11 @@
             </h2>
         </button>
         {#if showUserManagement}
-        <div class="search-box">
-            <input type="text" placeholder="Search users..." bind:value={$searchQuery}>
-        </div>
-        <div class="users-list">
-            {#each $filteredUsers as user (user.id)}
+            <div class="search-box">
+                <input type="text" placeholder="Search users..." bind:value={$searchQuery} />
+            </div>
+            <div class="users-list">
+                {#each $filteredUsers as user (user.id)}
                     <div class="user-item">
                         <div class="user-name">{user.name}</div>
                         <div class="user-email">{user.email}</div>
@@ -406,7 +452,7 @@
         color: black;
     }
 
-    .section-title-button:hover{
+    .section-title-button:hover {
         transform: scale(1.05);
     }
 
@@ -456,17 +502,27 @@
     }
 
     .search-box input[type='text'] {
-    margin-bottom: 20px;
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
+        margin-bottom: 20px;
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .news-input-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
 
-    :global(body.dark-mode) .admin-container,
+    .input-group textarea {
+        height: 150px; 
+        width: 100%;
+        resize: vertical;
+    }
+
     :global(body.dark-mode) .admin-section {
-        background-color: #272936;
         color: #bfc2c7;
+        background-color: #1b1c23;
     }
 
     :global(body.dark-mode) .closed-days-table,

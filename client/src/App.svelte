@@ -17,13 +17,15 @@
     import FaHome from 'svelte-icons/fa/FaHome.svelte';
     import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte';
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
+    import { BASE_URL } from './stores/global.js';
+    import { Plane } from 'svelte-loading-spinners';
 
     let isLoading = true;
     let isAuthenticated = false;
 
     async function logout() {
         try {
-            const response = await fetch('/api/auth/logout', {
+            const response = await fetch($BASE_URL + '/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include',
             });
@@ -101,7 +103,7 @@
             </main>
         {/if}
     {:else}
-        <img src="./img/infinite-spinner.svg" style="width:100px height=100px" alt="Spinner" />
+    <Plane size="100" color="#535bf2" unit="px" />
     {/if}
 </Router>
 
