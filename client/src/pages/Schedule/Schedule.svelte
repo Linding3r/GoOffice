@@ -5,7 +5,7 @@
     import { user } from '../../stores/userStore';
     import io from 'socket.io-client';
     import ConfirmationModal from '../../component/ConfirmationModal/ConfirmationModal.svelte';
-
+    import { Plane } from 'svelte-loading-spinners';
 
     const socket = io($BASE_URL);
 
@@ -191,17 +191,13 @@
 <Toaster />
 
 {#if showConfirmationModal}
-    <ConfirmationModal
-        message="Are you sure you want to cancel this booking?"
-        onConfirm={confirmCancellation}
-        onCancel={cancelCancellation}
-    />
+    <ConfirmationModal message="Are you sure you want to cancel this booking?" onConfirm={confirmCancellation} onCancel={cancelCancellation} />
 {/if}
 
 <div class="booking-container">
     <h1>Desk Bookings</h1>
     {#if loading}
-        <img src="../../../public/img/infinite-spinner.svg" style="width:100px height=100px" alt="Spinner" />
+        <Plane size="100" color="#535bf2" unit="px" />
     {:else}
         {#each Object.keys(bookings) as date (date)}
             {#if new Date(date.split('-').reverse().join('-')).getDay() == 1}
@@ -242,7 +238,11 @@
                             Book Afternoon
                         </button>
                     {:else}
-                        <button class="cancel-button" disabled={isDisabled(date)} on:click={() => openConfirmationModal(userBookings[date].afternoon.bookingId)}>
+                        <button
+                            class="cancel-button"
+                            disabled={isDisabled(date)}
+                            on:click={() => openConfirmationModal(userBookings[date].afternoon.bookingId)}
+                        >
                             Cancel Afternoon
                         </button>
                     {/if}
