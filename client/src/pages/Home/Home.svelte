@@ -41,9 +41,8 @@
     }
 
     function getTotalPages() {
-    return Math.ceil(newsItems.length / itemsPerPage);
-}
-
+        return Math.ceil(newsItems.length / itemsPerPage);
+    }
 </script>
 
 <section>
@@ -59,41 +58,37 @@
         {/each}
     </div>
     <div class="pagination-controls">
-        <button on:click={() => currentPage = Math.max(1, currentPage - 1)} disabled={currentPage === 1}>Previous</button>
-        <button on:click={() => currentPage = Math.min(getTotalPages(), currentPage + 1)} disabled={currentPage === getTotalPages()}>Next</button>
-        
+        <button on:click={() => (currentPage = Math.max(1, currentPage - 1))} disabled={currentPage === 1}>Previous</button>
+        <button on:click={() => (currentPage = Math.min(getTotalPages(), currentPage + 1))} disabled={currentPage === getTotalPages()}>Next</button>
     </div>
-    
-    
 </section>
 
 <style>
+    .pagination-controls {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
 
-.pagination-controls {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
+    .pagination-controls button {
+        padding: 5px 10px;
+        margin: 0 5px;
+        background-color: #535bf2;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
 
-.pagination-controls button {
-    padding: 5px 10px;
-    margin: 0 5px;
-    background-color: #535bf2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
+    .pagination-controls button:hover {
+        background-color: #414aad;
+    }
 
-.pagination-controls button:hover {
-    background-color: #414aad;
-}
-
-.pagination-controls button:disabled {
-    background-color: #ccc;
-    cursor: default;
-}
+    .pagination-controls button:disabled {
+        background-color: #ccc;
+        cursor: default;
+    }
 
     section {
         display: flex;
@@ -119,7 +114,7 @@
 
     .news-item {
         background-color: #f2f2f2;
-        
+
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 10px;
@@ -154,7 +149,7 @@
     }
 
     :global(body.dark-mode) .news-container {
-        background-color: #272936;
+        background-color: #1e1f27;
         color: #bfc2c7;
     }
 

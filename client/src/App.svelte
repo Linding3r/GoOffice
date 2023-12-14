@@ -16,9 +16,11 @@
     import FaCalendarCheck from 'svelte-icons/fa/FaCalendarCheck.svelte';
     import FaHome from 'svelte-icons/fa/FaHome.svelte';
     import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte';
+    import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte'
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
     import { BASE_URL } from './stores/global.js';
     import { Plane } from 'svelte-loading-spinners';
+    import OfficeManager from './pages/OfficeManager/OfficeManager.svelte';
 
     let isLoading = true;
     let isAuthenticated = false;
@@ -38,7 +40,6 @@
                 toast.error('Logout failed.');
             }
         } catch (error) {
-            console.error('Failed to logout', error);
             toast.error('An error occurred while logging out.');
         }
     }
@@ -72,6 +73,14 @@
                         <div class="tooltip">Schedule</div>
                     </div>
                 </Link>
+                {#if $user.isAdmin === 1 || $user.departmentId === 7 }
+                <Link to="/office">
+                    <div class="icon">
+                        <FaCoffee />
+                        <div class="tooltip">Office</div>
+                    </div>
+                </Link>
+                {/if}
                 {#if $user.isAdmin === 1}
                     <Link to="/admin">
                         <div class="icon">
@@ -94,6 +103,7 @@
                 <Route path="/schedule" component={Schedule} />
                 <Route path="/no-permission" component={NoPermission} />
                 <PrivateRoute path="/admin"><Admin /></PrivateRoute>
+                <Route path="/office" component={OfficeManager}></Route>
             </main>
         {:else}
             <main>

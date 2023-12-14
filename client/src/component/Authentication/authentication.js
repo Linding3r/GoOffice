@@ -9,7 +9,7 @@ export async function checkAuthStatus() {
         });
         const data = await response.json();
         if (data.isAuthenticated) {
-            const userData = { name: data.name, isAdmin: data.is_admin, userId: data.user_id };
+            const userData = { name: data.name, isAdmin: data.is_admin, userId: data.user_id, departmentId: data.department_id };
             user.set(userData);
             localStorage.setItem('user', JSON.stringify(userData));
         } else {

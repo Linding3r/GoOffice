@@ -386,7 +386,7 @@
     }
 
     :global(body.dark-mode) .booking-container {
-        background-color: #272936;
+        background-color: #1e1f27;
         color: #bfc2c7;
     }
 
