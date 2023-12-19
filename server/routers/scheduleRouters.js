@@ -8,7 +8,7 @@ const router = Router();
 
 router.get('/api/waitlist/:date', isAuthenticated, async (req, res) => {
     const date = moment(req.params).format('YYYY-MM-DD');
-    const departmentId = req.session.user.department_id
+    const departmentId = req.session.user.department_id;
     try {
         const [waitlist] = await db.promise().query(
             `SELECT bwl.id, bwl.user_id, bwl.date, bwl.shift, bwl.time, u.name 
@@ -124,7 +124,9 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
     const { start_date, end_date, reason } = req.body;
     try {
         const result = await db.promise().query(`INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, [start_date, end_date, reason]);
-        res.status(201).json({ message: 'Closed period added successfully' });
+        if (result) {
+            res.status(201).json({ message: 'Closed period added successfully' });
+        }
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -132,17 +134,24 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
 
 router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
     const user_id = req.session.user.user_id;
-    const userDepartmentId = req.session.user.department_id
+    const userDepartmentId = req.session.user.department_id;
     const { shift_type } = req.body;
     const shift_date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
     try {
         const [existing] = await db
             .promise()
             .query('SELECT id FROM booking_wait_list WHERE user_id=? AND shift=? AND date=?', [user_id, shift_type, shift_date]);
-        if (existing > 0) {
+        if (existing.length > 0) {
             res.status(409).json({ message: 'User already on waitlist for given shift type' });
         }
-        const result = await db.promise().query(`INSERT INTO booking_wait_list (user_id, date, shift, department_id) VALUES (?, ?, ?, ?)`, [user_id, shift_date, shift_type, userDepartmentId]);
+        const result = await db
+            .promise()
+            .query(`INSERT INTO booking_wait_list (user_id, date, shift, department_id) VALUES (?, ?, ?, ?)`, [
+                user_id,
+                shift_date,
+                shift_type,
+                userDepartmentId,
+            ]);
         if (result) {
             res.status(200).json({ message: 'Successfully joined waitlist' });
             io.emit('waitlistUpdate');
@@ -170,10 +179,41 @@ router.delete('/api/waitlist/cancel', isAuthenticated, async (req, res) => {
     }
 });
 
+async function checkForWaitlist(bookingId) {
+    try {
+        const [deskBookingRows] = await db.promise().query(`SELECT * FROM desk_bookings WHERE id = ?`, [bookingId]);
+
+        if (deskBookingRows.length > 0) {
+            const deskBooking = deskBookingRows[0];
+            const date = moment(deskBooking.date).format('YYYY-MM-DD');
+
+            const [waitlistRows] = await db
+                .promise()
+                .query(`SELECT * FROM booking_wait_list WHERE date = ? AND shift = ? ORDER BY time ASC LIMIT 1`, [date, deskBooking.shift]);
+
+            if (waitlistRows.length > 0) {
+                const waitlistUser = waitlistRows[0];
+                const [newBooking] = await db.promise().query(`INSERT INTO desk_bookings (user_id, shift, date, department_id) VALUES (?, ?, ?, ?)`,[waitlistUser.user_id, waitlistUser.shift, date, waitlistUser.department_id]);
+                if(newBooking){
+                    await db.promise().query(`DELETE FROM booking_wait_list WHERE id = ?`,[waitlistUser.id]);
+                    io.emit('bookingUpdate');
+                }
+            } else {
+                console.log('No users in waitlist');
+            }
+        } else {
+            console.log('No desk booking found');
+        }
+    } catch (err) {
+        console.error('Internal Server Error', err);
+    }
+}
+
 router.delete('/api/bookings/cancel-shift', isAuthenticated, async (req, res) => {
     const bookingId = req.body.booking_id;
 
     try {
+        checkForWaitlist(bookingId);
         const [result] = await db.promise().query(`DELETE FROM desk_bookings WHERE id=?`, [bookingId]);
 
         if (result) {
