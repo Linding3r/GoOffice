@@ -8,14 +8,15 @@ const router = Router();
 
 router.get('/api/waitlist/:date', isAuthenticated, async (req, res) => {
     const date = moment(req.params).format('YYYY-MM-DD');
+    const departmentId = req.session.user.department_id
     try {
         const [waitlist] = await db.promise().query(
             `SELECT bwl.id, bwl.user_id, bwl.date, bwl.shift, bwl.time, u.name 
         FROM booking_wait_list bwl
         JOIN users u ON bwl.user_id = u.id
-        WHERE bwl.date = ?;
+        WHERE bwl.date = ? AND bwl.department_id = ?;
         `,
-            [date]
+            [date, departmentId]
         );
         res.status(200).json(waitlist);
     } catch (err) {
@@ -131,6 +132,7 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
 
 router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
     const user_id = req.session.user.user_id;
+    const userDepartmentId = req.session.user.department_id
     const { shift_type } = req.body;
     const shift_date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
     try {
@@ -140,7 +142,7 @@ router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
         if (existing > 0) {
             res.status(409).json({ message: 'User already on waitlist for given shift type' });
         }
-        const result = await db.promise().query(`INSERT INTO booking_wait_list (user_id, date, shift) VALUES (?, ?, ?)`, [user_id, shift_date, shift_type]);
+        const result = await db.promise().query(`INSERT INTO booking_wait_list (user_id, date, shift, department_id) VALUES (?, ?, ?, ?)`, [user_id, shift_date, shift_type, userDepartmentId]);
         if (result) {
             res.status(200).json({ message: 'Successfully joined waitlist' });
             io.emit('waitlistUpdate');
