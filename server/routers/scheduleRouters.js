@@ -134,9 +134,16 @@ router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
     const { shift_type } = req.body;
     const shift_date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
     try {
+        const [existing] = await db
+            .promise()
+            .query('SELECT id FROM booking_wait_list WHERE user_id=? AND shift=? AND date=?', [user_id, shift_type, shift_date]);
+        if (existing > 0) {
+            res.status(409).json({ message: 'User already on waitlist for given shift type' });
+        }
         const result = await db.promise().query(`INSERT INTO booking_wait_list (user_id, date, shift) VALUES (?, ?, ?)`, [user_id, shift_date, shift_type]);
         if (result) {
             res.status(200).json({ message: 'Successfully joined waitlist' });
+            io.emit('waitlistUpdate');
         } else {
             res.status(400).json({ error: 'Joining waitlist failed' });
         }
@@ -147,10 +154,15 @@ router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
 });
 
 router.delete('/api/waitlist/cancel', isAuthenticated, async (req, res) => {
-    const id = req.body.id;
+    const id = req.body.waitlist_id;
     try {
-        await db.promise().query(`DELETE FROM booking_wait_list WHERE id = ?`, [id]);
-        res.status(200).json({ message: 'Succesfully removed yourself from waitlist' });
+        const [result] = await db.promise().query(`DELETE FROM booking_wait_list WHERE id = ?`, [id]);
+        if (result) {
+            res.status(200).json({ message: 'Succesfully removed yourself from waitlist' });
+            io.emit('waitlistUpdate');
+        } else {
+            res.status(400).json({ message: 'Nothing found under the given waitlist_id' });
+        }
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
     }

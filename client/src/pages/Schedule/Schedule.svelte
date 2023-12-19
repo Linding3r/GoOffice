@@ -1,7 +1,4 @@
 <script>
-    //**********************************************************************************************************************
-    //TODO: ADD waitlist functionality
-    //**********************************************************************************************************************
     import { onMount } from 'svelte';
     import { BASE_URL } from '../../stores/global';
     import toast, { Toaster } from 'svelte-french-toast';
@@ -34,6 +31,10 @@
             fetchClosedDays();
             fetchBookings();
             socket.on('bookingUpdate', fetchBookings);
+            socket.on('waitlistUpdate', () => { 
+                showBookingModal = false;
+                openBookingModal(currentBookingDate);
+            });
         }
         return () => {
             socket.disconnect();
@@ -208,9 +209,9 @@
             hasMorningBooking = userBookings[date] && userBookings[date].morning;
             hasAfternoonBooking = userBookings[date] && userBookings[date].afternoon;
 
-
             currentBookingDate = date;
             currentWaitlist = waitlistData;
+
             showBookingModal = true;
         } catch (error) {
             toast.error('Error fetching waitlist: ' + error.message);
@@ -283,8 +284,8 @@
         afternoonBooked={hasAfternoonBooking}
         user={currentUser}
         onRemoveFromWaitlist={id => cancelWaitlist(id)}
-        isFullyBookedMorning={isFullyBookedMorning}
-        isFullyBookedAfternoon={isFullyBookedAfternoon}
+        {isFullyBookedMorning}
+        {isFullyBookedAfternoon}
         onMorningJoin={() => joinWaitlist(currentBookingDate, 'morning')}
         onAfternoonJoin={() => joinWaitlist(currentBookingDate, 'afternoon')}
     />

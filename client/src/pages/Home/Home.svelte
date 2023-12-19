@@ -119,7 +119,7 @@
 
     .news-item {
         background-color: #f2f2f2;
-
+        min-width: 600px;
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 10px;

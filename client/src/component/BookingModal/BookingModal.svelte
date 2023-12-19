@@ -12,12 +12,12 @@
     export let afternoonBooked = false;
 
     function alreadyOnWaitlist(shift_type) {
-        return waitlist.some(request => request.user_id === user.id && request.shift === shift_type);
+        return waitlist.some(request => request.user_id === user.userId && request.shift === shift_type);
     }
 
     function findWaitlistId(shift_type) {
-        let entry = waitlist.find(request => request.user_id === user.id && request.shift === shift_type);
-        return entry ? entry.id : null;
+        let entry = waitlist.find(request => request.user_id === user.userId && request.shift === shift_type);
+        return entry.id;
     }
 
 
