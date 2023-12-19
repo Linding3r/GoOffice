@@ -16,14 +16,17 @@
     import FaCalendarCheck from 'svelte-icons/fa/FaCalendarCheck.svelte';
     import FaHome from 'svelte-icons/fa/FaHome.svelte';
     import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte';
-    import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte'
+    import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte';
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
     import { BASE_URL } from './stores/global.js';
     import { Plane } from 'svelte-loading-spinners';
     import OfficeManager from './pages/OfficeManager/OfficeManager.svelte';
+    import Badge from './component/Badge/Badge.svelte';
 
     let isLoading = true;
     let isAuthenticated = false;
+    let newNewsNumber = 1;
+    let scheduleUpdateNumber = 9;
 
     async function logout() {
         try {
@@ -64,22 +67,28 @@
                 <Link to="/">
                     <div class="icon">
                         <FaHome />
+                        {#if newNewsNumber > 0}
+                            <Badge count={newNewsNumber} />
+                        {/if}
                         <div class="tooltip">Home</div>
                     </div>
                 </Link>
                 <Link to="/schedule">
                     <div class="icon">
                         <FaCalendarCheck />
+                        {#if scheduleUpdateNumber > 0}
+                        <Badge count={scheduleUpdateNumber} />
+                        {/if}
                         <div class="tooltip">Schedule</div>
                     </div>
                 </Link>
-                {#if $user.isAdmin === 1 || $user.departmentId === 7 }
-                <Link to="/office">
-                    <div class="icon">
-                        <FaCoffee />
-                        <div class="tooltip">Office</div>
-                    </div>
-                </Link>
+                {#if $user.isAdmin === 1 || $user.departmentId === 7}
+                    <Link to="/office">
+                        <div class="icon">
+                            <FaCoffee />
+                            <div class="tooltip">Office</div>
+                        </div>
+                    </Link>
                 {/if}
                 {#if $user.isAdmin === 1}
                     <Link to="/admin">
@@ -113,7 +122,7 @@
             </main>
         {/if}
     {:else}
-    <Plane size="100" color="#535bf2" unit="px" />
+        <Plane size="100" color="#535bf2" unit="px" />
     {/if}
 </Router>
 
@@ -144,17 +153,6 @@
         color: #bfc2c7;
     }
 
-    .icon {
-        width: 30px;
-        height: 30px;
-        color: #f0f0f0;
-        display: block;
-        color: #f0f0f0;
-        text-decoration: none;
-        margin-bottom: 25px;
-        margin-left: 30px;
-    }
-
     .icon:hover {
         transform: scale(120%);
         color: #535bf2;
@@ -173,23 +171,5 @@
 
     .icon-button:hover .icon {
         transform: scale(120%);
-    }
-
-    .icon .tooltip {
-        visibility: hidden;
-        width: 100px;
-        background-color: #fff;
-        color: #535bf2;
-        text-align: center;
-        border-radius: 6px;
-        padding: 8px 0;
-        position: absolute;
-        margin-left: 45px;
-        margin-top: -38px;
-        z-index: -1;
-    }
-
-    .icon:hover .tooltip {
-        visibility: visible;
     }
 </style>

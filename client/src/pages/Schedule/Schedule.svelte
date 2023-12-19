@@ -1,4 +1,7 @@
 <script>
+    //**********************************************************************************************************************
+    //TODO: ADD waitlist functionality
+    //**********************************************************************************************************************
     import { onMount } from 'svelte';
     import { BASE_URL } from '../../stores/global';
     import toast, { Toaster } from 'svelte-french-toast';
@@ -6,6 +9,8 @@
     import io from 'socket.io-client';
     import ConfirmationModal from '../../component/ConfirmationModal/ConfirmationModal.svelte';
     import { Plane } from 'svelte-loading-spinners';
+    import FaBars from 'svelte-icons/fa/FaBars.svelte';
+    import BookingModal from '../../component/BookingModal/BookingModal.svelte';
 
     const socket = io($BASE_URL);
 
@@ -15,7 +20,14 @@
     let closedDays = [];
     let currentUser = $user;
     let showConfirmationModal = false;
+    let showBookingModal = false;
     let currentBookingId = null;
+    let currentBookingDate = null;
+    let currentWaitlist = [];
+    let isFullyBookedMorning = false;
+    let isFullyBookedAfternoon = false;
+    let hasAfternoonBooking = false;
+    let hasMorningBooking = false;
 
     onMount(() => {
         if ($user) {
@@ -80,7 +92,7 @@
         const currentDate = new Date(date.split('-').reverse().join('-'));
         const startDate = new Date(currentDate.getFullYear(), 0, 1);
         const days = Math.floor((currentDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-        return Math.ceil(days / 7);
+        return Math.ceil((days + 1) / 7);
     }
 
     function processBookings(date) {
@@ -132,7 +144,7 @@
     async function cancelShift(bookingId) {
         try {
             const response = await fetch($BASE_URL + '/api/bookings/cancel-shift', {
-                method: 'POST',
+                method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_id: bookingId }),
             });
@@ -164,6 +176,18 @@
         }
     }
 
+    async function fetchWaitlist(date) {
+        try {
+            const response = await fetch(`${$BASE_URL}/api/waitlist/${date}`);
+            if (!response.ok) {
+                throw new Error('Error fetching waitlist');
+            }
+            return await response.json();
+        } catch (error) {
+            toast.error('Error fetching waitlist: ' + error.message);
+        }
+    }
+
     function isClosedDay(dateString) {
         const givenDate = new Date(dateString.split('-').reverse().join('-'));
         return closedDays.some(period => givenDate >= period.start && givenDate <= period.end);
@@ -172,6 +196,29 @@
     function openConfirmationModal(bookingId) {
         currentBookingId = bookingId;
         showConfirmationModal = true;
+    }
+
+    async function openBookingModal(date) {
+        try {
+            const waitlistData = await fetchWaitlist(date);
+
+            isFullyBookedMorning = bookings[date].morning.spotsLeft > 0;
+            isFullyBookedAfternoon = bookings[date].afternoon.spotsLeft > 0;
+
+            hasMorningBooking = userBookings[date] && userBookings[date].morning;
+            hasAfternoonBooking = userBookings[date] && userBookings[date].afternoon;
+
+
+            currentBookingDate = date;
+            currentWaitlist = waitlistData;
+            showBookingModal = true;
+        } catch (error) {
+            toast.error('Error fetching waitlist: ' + error.message);
+        }
+    }
+
+    function closeBookingModal() {
+        showBookingModal = false;
     }
 
     async function confirmCancellation() {
@@ -186,12 +233,61 @@
         showConfirmationModal = false;
         currentBookingId = null;
     }
+
+    async function cancelWaitlist(id) {
+        try {
+            const response = await fetch(`${$BASE_URL}/api/waitlist/cancel`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ waitlist_id: id }),
+            });
+            if (!response.ok) {
+                throw new Error('Error canceling waitlist');
+            }
+            toast.success('Successfully canceled waitlist');
+            fetchBookings();
+        } catch (error) {
+            toast.error('Error canceling waitlist: ' + error.message);
+        }
+    }
+
+    async function joinWaitlist(date, shiftType) {
+        try {
+            const response = await fetch(`${$BASE_URL}/api/waitlist/join`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shift_date: date, shift_type: shiftType, user_id: currentUser.user_id }),
+            });
+            if (!response.ok) {
+                throw new Error('Error joining waitlist');
+            }
+            toast.success('Successfully joined waitlist');
+            fetchBookings();
+        } catch (error) {
+            toast.error('Error joining waitlist: ' + error.message);
+        }
+    }
 </script>
 
 <Toaster />
 
 {#if showConfirmationModal}
     <ConfirmationModal message="Are you sure you want to cancel this booking?" onConfirm={confirmCancellation} onCancel={cancelCancellation} />
+{/if}
+
+{#if showBookingModal}
+    <BookingModal
+        waitlist={currentWaitlist}
+        onCancel={closeBookingModal}
+        morningBooked={hasMorningBooking}
+        afternoonBooked={hasAfternoonBooking}
+        user={currentUser}
+        onRemoveFromWaitlist={id => cancelWaitlist(id)}
+        isFullyBookedMorning={isFullyBookedMorning}
+        isFullyBookedAfternoon={isFullyBookedAfternoon}
+        onMorningJoin={() => joinWaitlist(currentBookingDate, 'morning')}
+        onAfternoonJoin={() => joinWaitlist(currentBookingDate, 'afternoon')}
+    />
 {/if}
 
 <div class="booking-container">
@@ -246,6 +342,12 @@
                             Cancel Afternoon
                         </button>
                     {/if}
+                    <button class="wait-list" disabled={isDisabled(date)} on:click={() => openBookingModal(date)}>
+                        <div class="select-icon">
+                            <FaBars />
+                            <div class="tooltip">More</div>
+                        </div>
+                    </button>
                 {/if}
             </div>
             <div class="bookings-list">
@@ -274,6 +376,48 @@
 </div>
 
 <style>
+    :global(body.dark-mode) .select-icon {
+        color: #bfc2c7;
+    }
+    .select-icon .tooltip {
+        visibility: hidden;
+        width: 100px;
+        background-color: #fff;
+        color: #535bf2;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px 0;
+        position: absolute;
+        margin-left: 45px;
+        margin-top: -38px;
+        z-index: -1;
+        border-color: #333;
+    }
+
+    .select-icon:hover {
+        transform: scale(1.1);
+    }
+
+    .select-icon:hover .tooltip {
+        visibility: visible;
+    }
+
+    .wait-list {
+        background-color: transparent;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        margin: 0px;
+        transition: background-color 0.2s;
+    }
+
+    .select-icon {
+        width: 30px;
+        height: 30px;
+        color: #1b1c23;
+        display: block;
+        text-decoration: none;
+    }
     .booking-container {
         max-width: calc(100vw - 150px);
         background-color: #fff;

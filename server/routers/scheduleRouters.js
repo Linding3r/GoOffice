@@ -2,12 +2,29 @@ import { Router } from 'express';
 import db from '../database/connection.js';
 import moment from 'moment';
 import { io } from '../app.js';
-import { isAuthenticated , isAdmin} from '../util/checkAuth.js';
+import { isAuthenticated, isAdmin } from '../util/checkAuth.js';
 
 const router = Router();
 
+router.get('/api/waitlist/:date', isAuthenticated, async (req, res) => {
+    const date = moment(req.params).format('YYYY-MM-DD');
+    try {
+        const [waitlist] = await db.promise().query(
+            `SELECT bwl.id, bwl.user_id, bwl.date, bwl.shift, bwl.time, u.name 
+        FROM booking_wait_list bwl
+        JOIN users u ON bwl.user_id = u.id
+        WHERE bwl.date = ?;
+        `,
+            [date]
+        );
+        res.status(200).json(waitlist);
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
-router.get('/api/bookings/four-weeks',isAuthenticated, async (req, res) => {
+router.get('/api/bookings/four-weeks', isAuthenticated, async (req, res) => {
     const departmentId = req.body.department_id || req.session.user.department_id;
     const startDate = moment().startOf('isoWeek').format('YYYY-MM-DD');
     const endDate = moment().add(3, 'weeks').endOf('isoWeek').format('YYYY-MM-DD');
@@ -49,28 +66,37 @@ router.get('/api/bookings/four-weeks',isAuthenticated, async (req, res) => {
     }
 });
 
+router.get('/api/closed-days', isAuthenticated, async (req, res) => {
+    try {
+        const [closedDays] = await db.promise().query(`SELECT * FROM closed_days`);
+        res.status(200).json(closedDays);
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 router.post('/api/bookings/book-shift', isAuthenticated, async (req, res) => {
     const user = req.session.user;
     const shift = req.body.shift_type;
     const date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
 
     try {
-        const [existing] = await db.promise().query(`SELECT id FROM desk_bookings WHERE user_id = ? AND shift = ? AND date = ? AND department_id = ?`, [
-            user.user_id,
-            shift,
-            date,
-            user.department_id,
-        ]);
+        const [existing] = await db
+            .promise()
+            .query(`SELECT id FROM desk_bookings WHERE user_id = ? AND shift = ? AND date = ? AND department_id = ?`, [
+                user.user_id,
+                shift,
+                date,
+                user.department_id,
+            ]);
 
         if (existing.length > 0) {
             return res.status(409).json({ message: 'Booking already exists for this date and shift.' });
         }
 
-        const [[{ spotsLeft }]] = await db.promise().query(`SELECT COUNT(*) as spotsLeft FROM desk_bookings WHERE shift = ? AND date = ? AND department_id = ?`, [
-            shift,
-            date,
-            user.department_id,
-        ]);
+        const [[{ spotsLeft }]] = await db
+            .promise()
+            .query(`SELECT COUNT(*) as spotsLeft FROM desk_bookings WHERE shift = ? AND date = ? AND department_id = ?`, [shift, date, user.department_id]);
 
         const [[{ num_desks }]] = await db.promise().query(`SELECT num_desks FROM departments WHERE id = ?`, [user.department_id]);
 
@@ -78,7 +104,9 @@ router.post('/api/bookings/book-shift', isAuthenticated, async (req, res) => {
             return res.status(409).json({ message: 'No spots left for this shift.' });
         }
 
-        const [result] = await db.promise().query(`INSERT INTO desk_bookings (user_id, department_id, shift, date) VALUES (?, ?, ?, ?)`, [user.user_id, user.department_id, shift, date]);
+        const [result] = await db
+            .promise()
+            .query(`INSERT INTO desk_bookings (user_id, department_id, shift, date) VALUES (?, ?, ?, ?)`, [user.user_id, user.department_id, shift, date]);
 
         if (result) {
             io.emit('bookingUpdate');
@@ -91,15 +119,49 @@ router.post('/api/bookings/book-shift', isAuthenticated, async (req, res) => {
     }
 });
 
+router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
+    const { start_date, end_date, reason } = req.body;
+    try {
+        const result = await db.promise().query(`INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, [start_date, end_date, reason]);
+        res.status(201).json({ message: 'Closed period added successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
-router.post('/api/bookings/cancel-shift',isAuthenticated, async (req, res) => {
+router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
+    const user_id = req.session.user.user_id;
+    const { shift_type } = req.body;
+    const shift_date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
+    try {
+        const result = await db.promise().query(`INSERT INTO booking_wait_list (user_id, date, shift) VALUES (?, ?, ?)`, [user_id, shift_date, shift_type]);
+        if (result) {
+            res.status(200).json({ message: 'Successfully joined waitlist' });
+        } else {
+            res.status(400).json({ error: 'Joining waitlist failed' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+        console.log(err);
+    }
+});
+
+router.delete('/api/waitlist/cancel', isAuthenticated, async (req, res) => {
+    const id = req.body.id;
+    try {
+        await db.promise().query(`DELETE FROM booking_wait_list WHERE id = ?`, [id]);
+        res.status(200).json({ message: 'Succesfully removed yourself from waitlist' });
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.delete('/api/bookings/cancel-shift', isAuthenticated, async (req, res) => {
     const bookingId = req.body.booking_id;
 
     try {
         const [result] = await db.promise().query(`DELETE FROM desk_bookings WHERE id=?`, [bookingId]);
-        if(!bookingId){
-            console.log("No booking number attached")
-        }
+
         if (result) {
             io.emit('bookingUpdate');
             res.status(200).json({ message: 'Booking successfully canceled' });
@@ -111,20 +173,6 @@ router.post('/api/bookings/cancel-shift',isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
-    const { start_date, end_date, reason } = req.body;
-    try {
-        const result = await db.promise().query(
-            `INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, 
-            [start_date, end_date, reason]
-        );
-        res.status(201).json({ message: 'Closed period added successfully' });
-    } catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-
 router.delete('/api/closed-days/:id', isAuthenticated, isAdmin, async (req, res) => {
     const { id } = req.params;
 
@@ -135,20 +183,5 @@ router.delete('/api/closed-days/:id', isAuthenticated, isAdmin, async (req, res)
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
-router.get('/api/closed-days', isAuthenticated, async (req, res) => {
-    try {
-        const [closedDays] = await db.promise().query(`SELECT * FROM closed_days`);
-        res.status(200).json(closedDays);
-    } catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-
-
-
-
-
 
 export default router;

@@ -325,6 +325,7 @@
 </section>
 
 <style>
+    
     .users-list {
         margin-top: 20px;
     }
@@ -453,7 +454,7 @@
     }
 
     .section-title-button:hover {
-        transform: scale(1.05);
+        background-color: #f2f2f2;
     }
 
     .dropdown-arrow {
@@ -554,5 +555,9 @@
 
     :global(body.dark-mode) .delete-button:hover {
         background-color: #ff4c4c;
+    }
+
+    :global(body.dark-mode) .section-title-button:hover {
+        background-color: #333;
     }
 </style>

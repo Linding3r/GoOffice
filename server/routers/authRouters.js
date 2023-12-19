@@ -6,7 +6,7 @@ const router = Router();
 
 router.get('/api/checkAuth', (req, res) => {
     if (req.session.isAuthenticated) {
-        res.status(200).json({ isAuthenticated: true, name: req.session.user.name, is_admin: req.session.user.is_admin, user_id: req.session.user.user_id });
+        res.status(200).json({ isAuthenticated: true, name: req.session.user.name, is_admin: req.session.user.is_admin, user_id: req.session.user.user_id, department_id: req.session.user.department_id });
     } else {
         res.status(200).json({ isAuthenticated: false });
     }

@@ -9,7 +9,7 @@
     const socket = io($BASE_URL);
 
     let currentPage = 1;
-    const itemsPerPage = 5;
+    const itemsPerPage = 3;
 
     $: paginatedNewsItems = newsItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -43,6 +43,10 @@
     function getTotalPages() {
         return Math.ceil(newsItems.length / itemsPerPage);
     }
+
+    function formatNewsContent(content) {
+        return content.replace(/\n/g, '<br>');
+    }
 </script>
 
 <section>
@@ -52,7 +56,7 @@
         {#each paginatedNewsItems as newsItem (newsItem.id)}
             <div class="news-item">
                 <h3>{newsItem.title}</h3>
-                <p>{newsItem.description}</p>
+                <p>{@html formatNewsContent(newsItem.description)}</p>
                 <small>{new Date(newsItem.time).toLocaleString()}</small>
             </div>
         {/each}
@@ -64,6 +68,7 @@
 </section>
 
 <style>
+
     .pagination-controls {
         display: flex;
         justify-content: center;
