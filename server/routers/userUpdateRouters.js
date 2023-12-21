@@ -26,6 +26,7 @@ router.post('/api/user-updates/read/:id', isAuthenticated, async (req, res) => {
         const [result] = await db.promise().query(`UPDATE user_updates SET has_read = 1 WHERE id = ?`, [updateId]);
         if (result.affectedRows > 0) {
             res.status(200).send({ message: 'Update marked as read' });
+            io.emit('updateNotification')
         } else {
             res.status(204).send({ message: 'No updates with given id' });
         }

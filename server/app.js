@@ -52,14 +52,14 @@ const allRoutesLimiter = rateLimit({
 
 app.use(allRoutesLimiter);
 
-const authRateLimiter = rateLimit({
+const loginRateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, 
-    limit: 50,
+    limit: 10,
     standardHeaders: 'draft-7', 
     legacyHeaders: false, 
 });
 
-app.use('/api/auth/', authRateLimiter);
+app.use('/api/auth/login', loginRateLimiter);
 
 import authRouters from './routers/authRouters.js';
 app.use(authRouters);

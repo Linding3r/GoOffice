@@ -15,7 +15,7 @@
     import DarkmodeSwitch from './component/Darkmode/DarkmodeSwitch.svelte';
     import FaCalendarCheck from 'svelte-icons/fa/FaCalendarCheck.svelte';
     import FaHome from 'svelte-icons/fa/FaHome.svelte';
-    import FaCog from 'svelte-icons/fa/FaCog.svelte';
+    import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte'
     import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte';
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
     import { BASE_URL } from './stores/global.js';
@@ -31,6 +31,7 @@
     let isAuthenticated = false;
     let userUpdateNumber = 0;
     let userNewsNumber = 0;
+
 
     async function logout() {
         try {
@@ -71,7 +72,7 @@
         try {
             const response = await fetch($BASE_URL + '/api/news/get-unread-number');
             if (response.status === 204) {
-                userUpdateNumber = 0;
+                userNewsNumber = 0;
                 return;
             }
             if (response.ok) {
@@ -96,9 +97,9 @@
     });
 
     $: isAuthenticated = $user !== null;
+    $: if ($user) fetchUserData();
     $: userUpdateNumber = userUpdateNumber;
     $: userNewsNumber = userNewsNumber;
-    $: $user && fetchUserData();
 </script>
 
 <Toaster />
@@ -133,7 +134,7 @@
                 {#if $user.isAdmin === 1}
                     <Link to="/admin">
                         <div class="icon">
-                            <FaCog />
+                            <FaUserCog />
                             <div class="tooltip">Admin</div>
                         </div>
                     </Link>
@@ -141,7 +142,7 @@
                 <Link to="/profile">
                     <div class="icon">
                         <FaUserAstronaut />
-                        {#if userUpdateNumber > 0}
+                        {#if userUpdateNumber}
                             <Badge count={userUpdateNumber} />
                         {/if}
                         <div class="tooltip">Profile</div>
