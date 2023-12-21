@@ -1,10 +1,9 @@
 import { user } from '../../stores/userStore.js';
 
 
-
 export async function checkAuthStatus() {
     try {
-        const response = await fetch('http://localhost:8080/api/checkAuth', {
+        const response = await fetch('/api/checkAuth', {
             credentials: 'include',
         });
         const data = await response.json();

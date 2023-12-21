@@ -14,7 +14,7 @@
     }
 
     let loginEmail = 'thomas@goautonomous.io';
-    let loginPassword = 'admin';
+    let loginPassword;
     let confirmPassword;
     let signupPassword;
     let signupEmail;

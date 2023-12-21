@@ -3,7 +3,7 @@ import db from '../database/connection.js';
 import moment from 'moment';
 import { io } from '../app.js';
 import { isAuthenticated, isAdmin } from '../util/checkAuth.js';
-import { checkForWaitlist } from '../util/waitlist.js';
+import { checkForWaitlistAndBook } from '../util/waitlist.js';
 
 const router = Router();
 
@@ -126,7 +126,7 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const result = await db.promise().query(`INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, [start_date, end_date, reason]);
         if (result) {
-            res.status(201).json({ message: 'Closed period added successfully' });
+            res.status(200).json({ message: 'Closed period added successfully' });
         }
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
@@ -185,7 +185,7 @@ router.delete('/api/bookings/cancel-shift', isAuthenticated, async (req, res) =>
     const bookingId = req.body.booking_id;
 
     try {
-        checkForWaitlist(bookingId);
+        checkForWaitlistAndBook(bookingId);
         const [result] = await db.promise().query(`DELETE FROM desk_bookings WHERE id=?`, [bookingId]);
 
         if (result) {

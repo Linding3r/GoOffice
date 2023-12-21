@@ -29,7 +29,7 @@
             if (response.ok) {
                 const data = await response.json();
                 if (data.news) {
-                    newsItems = data.news.reverse();
+                    newsItems = data.news;
                 }
             } else {
                 const errorText = await response.text();
@@ -40,12 +40,32 @@
         }
     }
 
+    async function markNewsAsRead(newsId) {
+        try {
+            const response = await fetch($BASE_URL + `/api/news/read/${newsId}`, { method: 'POST' });
+            if (response.ok) {
+                newsItems = newsItems.map(newsItem => (newsItem.id === newsId ? { ...newsItem, has_read: 1 } : newsItem));
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Server responded with an error');
+            }
+        } catch (error) {
+            toast.error('An error occurred: ' + error.message);
+        }
+    }
+
     function getTotalPages() {
         return Math.ceil(newsItems.length / itemsPerPage);
     }
 
     function formatNewsContent(content) {
         return content.replace(/\n/g, '<br>');
+    }
+
+    function handleKeyPress(event, newsId) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            markNewsAsRead(newsId);
+        }
     }
 </script>
 
@@ -54,7 +74,17 @@
     <h2>Latest News</h2>
     <div class="news-container">
         {#each paginatedNewsItems as newsItem (newsItem.id)}
-            <div class="news-item">
+            <div
+                class="news-item"
+                tabindex="0"
+                on:click={() => markNewsAsRead(newsItem.id)}
+                on:keydown={event => handleKeyPress(event, newsItem.id)}
+                role="button"
+                aria-pressed="false"
+            >
+                {#if newsItem.has_read === 0}
+                    <span class="badge">!</span>
+                {/if}
                 <h3>{newsItem.title}</h3>
                 <p>{@html formatNewsContent(newsItem.description)}</p>
                 <small>{new Date(newsItem.time).toLocaleString()}</small>
@@ -68,6 +98,17 @@
 </section>
 
 <style>
+    .badge {
+        background-color: red;
+        color: white;
+        padding: 0px 7px;
+        border-radius: 50%;
+        font-size: 0.9em;
+        position: absolute;
+        transform: translate(50%, -50%);
+        top: 0px;
+        right: 0px;
+    }
 
     .pagination-controls {
         display: flex;
@@ -123,6 +164,7 @@
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 10px;
+        position: relative;
         transition:
             transform 0.2s ease-in-out,
             box-shadow 0.2s ease-in-out;

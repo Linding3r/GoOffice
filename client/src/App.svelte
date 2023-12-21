@@ -15,18 +15,22 @@
     import DarkmodeSwitch from './component/Darkmode/DarkmodeSwitch.svelte';
     import FaCalendarCheck from 'svelte-icons/fa/FaCalendarCheck.svelte';
     import FaHome from 'svelte-icons/fa/FaHome.svelte';
-    import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte';
+    import FaCog from 'svelte-icons/fa/FaCog.svelte';
     import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte';
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
     import { BASE_URL } from './stores/global.js';
     import { Plane } from 'svelte-loading-spinners';
     import OfficeManager from './pages/OfficeManager/OfficeManager.svelte';
     import Badge from './component/Badge/Badge.svelte';
+    import FaUserAstronaut from 'svelte-icons/fa/FaUserAstronaut.svelte';
+    import Profile from './pages/Profile/Profile.svelte';
+    import io from 'socket.io-client';
 
+    const socket = io($BASE_URL);
     let isLoading = true;
     let isAuthenticated = false;
-    let newNewsNumber = 1;
-    let scheduleUpdateNumber = 9;
+    let userUpdateNumber = 0;
+    let userNewsNumber = 0;
 
     async function logout() {
         try {
@@ -47,15 +51,54 @@
         }
     }
 
+    async function fetchUserUpdateNumber() {
+        try {
+            const response = await fetch($BASE_URL + '/api/user-updates');
+            if (response.status === 204) {
+                userUpdateNumber = 0;
+                return;
+            }
+            if (response.ok) {
+                const data = await response.json();
+                if (data.updates) {
+                    userUpdateNumber = data.updates.length;
+                }
+            }
+        } catch (error) {}
+    }
+
+    async function fetchUserNewsNumber() {
+        try {
+            const response = await fetch($BASE_URL + '/api/news/get-unread-number');
+            if (response.status === 204) {
+                userUpdateNumber = 0;
+                return;
+            }
+            if (response.ok) {
+                const data = await response.json();
+                if (data.number) {
+                    userNewsNumber = data.number;
+                }
+            }
+        } catch (error) {}
+    }
+
+    async function fetchUserData() {
+        await fetchUserUpdateNumber();
+        await fetchUserNewsNumber();
+    }
+
     onMount(async () => {
         await checkAuthStatus();
+        socket.on('updateNotification', fetchUserUpdateNumber);
+        socket.on('newsNotification', fetchUserNewsNumber);
         isLoading = false;
     });
 
     $: isAuthenticated = $user !== null;
-    $: if (!$user) {
-        navigate('/');
-    }
+    $: userUpdateNumber = userUpdateNumber;
+    $: userNewsNumber = userNewsNumber;
+    $: $user && fetchUserData();
 </script>
 
 <Toaster />
@@ -67,8 +110,8 @@
                 <Link to="/">
                     <div class="icon">
                         <FaHome />
-                        {#if newNewsNumber > 0}
-                            <Badge count={newNewsNumber} />
+                        {#if userNewsNumber > 0}
+                            <Badge count={userNewsNumber} />
                         {/if}
                         <div class="tooltip">Home</div>
                     </div>
@@ -76,9 +119,6 @@
                 <Link to="/schedule">
                     <div class="icon">
                         <FaCalendarCheck />
-                        {#if scheduleUpdateNumber > 0}
-                        <Badge count={scheduleUpdateNumber} />
-                        {/if}
                         <div class="tooltip">Schedule</div>
                     </div>
                 </Link>
@@ -93,11 +133,20 @@
                 {#if $user.isAdmin === 1}
                     <Link to="/admin">
                         <div class="icon">
-                            <FaUserCog />
+                            <FaCog />
                             <div class="tooltip">Admin</div>
                         </div>
                     </Link>
                 {/if}
+                <Link to="/profile">
+                    <div class="icon">
+                        <FaUserAstronaut />
+                        {#if userUpdateNumber > 0}
+                            <Badge count={userUpdateNumber} />
+                        {/if}
+                        <div class="tooltip">Profile</div>
+                    </div>
+                </Link>
                 <button on:click={logout} class="icon-button">
                     <div class="icon">
                         <FaSignOutAlt />
@@ -113,6 +162,7 @@
                 <Route path="/no-permission" component={NoPermission} />
                 <PrivateRoute path="/admin"><Admin /></PrivateRoute>
                 <Route path="/office" component={OfficeManager}></Route>
+                <Route path="/profile" component={Profile}></Route>
             </main>
         {:else}
             <main>

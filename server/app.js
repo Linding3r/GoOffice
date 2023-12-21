@@ -85,6 +85,12 @@ app.use(departmentRouters);
 import newsRouters from './routers/newsRouters.js';
 app.use(newsRouters);
 
+import officeManagerRouter from './routers/officeManagerRouters.js';
+app.use(officeManagerRouter);
+
+import userUpdateRouters from './routers/userUpdateRouters.js';
+app.use(userUpdateRouters);
+
 app.get('*', (req, res) => {
     res.sendFile(path.resolve('../client/dist/index.html'));
 });

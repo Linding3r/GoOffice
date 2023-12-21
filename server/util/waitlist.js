@@ -1,8 +1,10 @@
 import db from '../database/connection.js';
 import moment from 'moment';
 import { io } from '../app.js';
+import { query } from 'express';
+import { sendUserUpdate } from './sendUserUpdate.js';
 
-export async function checkForWaitlist(bookingId) {
+export async function checkForWaitlistAndBook(bookingId) {
     try {
         const [deskBookingRows] = await db.promise().query(`SELECT * FROM desk_bookings WHERE id = ?`, [bookingId]);
 
@@ -20,6 +22,7 @@ export async function checkForWaitlist(bookingId) {
                 if(newBooking){
                     await db.promise().query(`DELETE FROM booking_wait_list WHERE id = ?`,[waitlistUser.id]);
                     io.emit('bookingUpdate');
+                    sendUserUpdate(waitlistUser.user_id, waitlistUser.shift, date)
                 }
             } else {
                 console.log('No users in waitlist');

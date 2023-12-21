@@ -8,7 +8,7 @@
     .badge {
         background-color: red;
         color: white;
-        padding: 0px 5px;
+        padding: 1px 5px;
         border-radius: 50%;
         font-size: 0.7em;
         position: absolute;
