@@ -103,7 +103,7 @@
         color: white;
         padding: 0px 7px;
         border-radius: 50%;
-        font-size: 0.9em;
+        font-size: 0.8em;
         position: absolute;
         transform: translate(50%, -50%);
         top: 0px;
