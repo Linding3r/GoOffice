@@ -15,7 +15,7 @@ router.get('/api/departments', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
-router.post('api/department/update:id', isAuthenticated, isAdmin, async (req, res) => {
+router.post('/api/departments/update:id', isAuthenticated, isAdmin, async (req, res) => {
     const desksNumber = req.body.desksNumber;
     const { departmentId } = req.params;
 
@@ -26,5 +26,7 @@ router.post('api/department/update:id', isAuthenticated, isAdmin, async (req, re
         res.status(500).json({ message: 'Error updating the department' });
     }
 });
+
+router.post('/api/departments')
 
 export default router;

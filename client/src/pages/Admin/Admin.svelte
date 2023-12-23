@@ -39,22 +39,25 @@
         const selectElement = event.target;
         let value = selectElement.value;
 
-        const response = await fetch($BASE_URL + `api/department/update/${id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value }),
-        });
-        if (response.ok) {
-            toast.success(`Successfully updated department`);
-        } else {
-            toast.error('Error updating department');
+        try {
+            const response = await fetch($BASE_URL + `/api/departments/update/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ value }),
+            });
+            if (response.ok) {
+                toast.success(`Successfully updated department`);
+            } else {
+                toast.error('Error updating department');
+            }
+        } catch (error) {
+            toast.error('Error updating department: ', error);
         }
     }
 
     function handleUserUpdate(user, field, event) {
         const selectElement = event.target;
         let value = selectElement.value;
-
 
         if (field === 'is_fulltime' || field === 'is_admin') {
             value = value === 'true';
@@ -238,7 +241,7 @@
                     <label for="closedReason">Reason</label>
                     <input type="text" id="closedReason" bind:value={closedReason} placeholder="Reason" />
                 </div>
-                
+
                 <button on:click={addClosedPeriod} class="add-button">Add Closed Period</button>
             </div>
 
@@ -325,7 +328,6 @@
 </section>
 
 <style>
-    
     .users-list {
         margin-top: 20px;
     }
@@ -516,7 +518,7 @@
     }
 
     .input-group textarea {
-        height: 150px; 
+        height: 150px;
         width: 100%;
         resize: vertical;
     }

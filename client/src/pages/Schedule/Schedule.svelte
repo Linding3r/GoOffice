@@ -31,7 +31,7 @@
             fetchClosedDays();
             fetchBookings();
             socket.on('bookingUpdate', fetchBookings);
-            socket.on('waitlistUpdate', () => { 
+            socket.on('waitlistUpdate', () => {
                 showBookingModal = false;
                 openBookingModal(currentBookingDate);
             });
@@ -383,8 +383,8 @@
     .select-icon .tooltip {
         visibility: hidden;
         width: 100px;
-        background-color: #fff;
-        color: #535bf2;
+        background-color: #535bf2;
+        color: #fff;
         text-align: center;
         border-radius: 6px;
         padding: 8px 0;

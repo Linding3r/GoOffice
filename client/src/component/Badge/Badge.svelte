@@ -13,5 +13,6 @@
         font-size: 0.8em;
         position: absolute;
         transform: translate(50%, -50%);
+        left: 25px;
     }
 </style>

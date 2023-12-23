@@ -5,9 +5,13 @@
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
 
+
     let updateItems = [];
     const socket = io($BASE_URL);
-
+    let showOfficeDays = false;
+    let showUserUpdates = false;
+    let showVacation = false;
+    let showUserSettings = false;
 
     onMount(() => {
         if ($user) {
@@ -22,10 +26,10 @@
     async function fetchInitialUpdates() {
         try {
             const response = await fetch($BASE_URL + '/api/user-updates');
-            if(response.status === 204) {
-                    updateItems = [];
-                    return;
-                }
+            if (response.status === 204) {
+                updateItems = [];
+                return;
+            }
             if (response.ok) {
                 const data = await response.json();
                 if (data.updates) {
@@ -60,113 +64,203 @@
         }
     }
 
+    function toggleSection(section) {
+        if (section === 'officeWorkDays') {
+            showOfficeDays = !showOfficeDays;
+        } else if (section === 'userUpdates') {
+            showUserUpdates = !showUserUpdates;
+        } else if (section === 'vacation') {
+            showVacation = !showVacation;
+        } else if (section === 'userSettings') {
+            showUserSettings = !showUserSettings;
+        }
+    }
 </script>
 
 <section>
     <Toaster />
-    <h2>User Updates</h2>
-    <div class="updates-container">
-        {#if updateItems.length === 0}
-            <p>No updates.</p>
-        {:else}
-            <p>Click on an update to mark it as read.</p>
-        
-        {#each updateItems as updateItem (updateItem.id)}
-            <div 
-                class="update-item" 
-                tabindex="0" 
-                on:click={() => markAsRead(updateItem.id)}
-                on:keydown={(event) => handleKeyPress(event, updateItem.id)}
-                role="button" 
-                aria-pressed="false"
-            >
-                <p>{@html updateItem.update_description}</p>
-                <small>{new Date(updateItem.update_time).toLocaleString()}</small>
-            </div>
-        {/each}
+    <div class="admin-section">
+        {#if updateItems.length > 0}
+            <span class="badge">{updateItems.length}</span>
+        {/if}
+        <button class="section-title-button" on:click={() => toggleSection('userUpdates')}>
+            <h2 class="section-title">
+                Updates
+                <span class="dropdown-arrow">{showUserUpdates ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showUserUpdates}
+            {#if updateItems.length === 0}
+                <p>No updates.</p>
+            {:else}
+                <p>Click on an update to mark it as read.</p>
+
+                {#each updateItems as updateItem (updateItem.id)}
+                    <div
+                        class="update-item"
+                        tabindex="0"
+                        on:click={() => markAsRead(updateItem.id)}
+                        on:keydown={event => handleKeyPress(event, updateItem.id)}
+                        role="button"
+                        aria-pressed="false"
+                    >
+                        <p>{@html updateItem.update_description}</p>
+                        <small>{new Date(updateItem.update_time).toLocaleString()}</small>
+                    </div>
+                {/each}
+            {/if}
+        {/if}
+    </div>
+
+    <div class="admin-section">
+        <button class="section-title-button" on:click={() => toggleSection('userSettings')}>
+            <h2 class="section-title">
+                User Settings
+                <span class="dropdown-arrow">{showUserSettings ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showUserSettings}
+            <!--User settings-->
+            <p>User Settings</p>
+        {/if}
+    </div>
+
+    <div class="admin-section">
+        <button class="section-title-button" on:click={() => toggleSection('officeWorkDays')}>
+            <h2 class="section-title">
+                Office Days
+                <span class="dropdown-arrow">{showOfficeDays ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showOfficeDays}
+            <!--Select Home working days-->
+            <p>Office Days</p>
+        {/if}
+    </div>
+
+    <div class="admin-section">
+        <button class="section-title-button" on:click={() => toggleSection('vacation')}>
+            <h2 class="section-title">
+                Vacation & Days Off
+                <span class="dropdown-arrow">{showVacation ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showVacation}
+            <!--Mark vacation-->
+            <p>Vacation</p>
         {/if}
     </div>
 </section>
 
 <style>
-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    padding: 20px;
-}
+    .badge {
+        background-color: red;
+        color: white;
+        padding: 0px 7px;
+        border-radius: 50%;
+        font-size: 0.8em;
+        position: absolute;
+        transform: translate(50%, -50%);
+        top: 0px;
+        right: 0px;
+    }
+    section {
+        display: grid;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+    }
 
-h2 {
-    color: #535bf2;
-    margin: 0;
-}
+    .update-item {
+        background-color: #f2f2f2;
+        min-width: 600px;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition:
+            transform 0.2s ease-in-out,
+            box-shadow 0.2s ease-in-out,
+            outline 0.3s ease;
+        cursor: pointer;
+        outline: none;
+    }
 
-.updates-container {
-    width: 100%;
-    max-width: 800px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-}
+    .update-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(83, 91, 242, 0.2);
+    }
 
-.update-item {
-    background-color: #f2f2f2;
-    min-width: 600px;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, outline 0.3s ease;
-    cursor: pointer;
-    outline: none; 
-}
+    .update-item:focus {
+        box-shadow: 0 0 0 3px rgba(83, 91, 242, 0.6);
+        transform: scale(1.02);
+    }
 
-.update-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(83, 91, 242, 0.2);
-}
+    .update-item p {
+        color: #333;
+    }
 
-.update-item:focus {
-    box-shadow: 0 0 0 3px rgba(83, 91, 242, 0.6);
-    transform: scale(1.02);
-}
+    .update-item small {
+        display: block;
+        color: #999;
+        margin-top: 10px;
+        font-size: 0.8em;
+    }
 
-.update-item p {
-    color: #333;
-}
+    .admin-section {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        min-width: 700px;
+        position: relative;
+    }
 
-.update-item small {
-    display: block;
-    color: #999;
-    margin-top: 10px;
-    font-size: 0.8em;
-}
+    .section-title {
+        margin: 0 0 20px 0;
+        cursor: pointer;
+        user-select: none;
+    }
 
-:global(body.dark-mode) section {
-    background-color: #1e1f27;
-    color: #bfc2c7;
-}
+    .section-title-button {
+        background: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        text-align: left;
+        width: 100%;
+        cursor: pointer;
+        color: black;
+    }
 
-:global(body.dark-mode) .updates-container {
-    background-color: #1b1c23;
-}
+    .section-title-button:hover {
+        background-color: #f2f2f2;
+    }
 
-:global(body.dark-mode) .update-item {
-    background-color: #252630;
-    color: #bfc2c7;
-}
+    .dropdown-arrow {
+        font-size: 18px;
+        margin-left: 10px;
+        align-items: end;
+    }
 
-:global(body.dark-mode) .update-item p {
-    color: #bfc2c7;
-}
+    :global(body.dark-mode) section {
+        color: #bfc2c7;
+    }
 
-:global(body.dark-mode) .update-item small {
-    color: #717781;
-}
+    :global(body.dark-mode) .update-item {
+        background-color: #252630;
+        color: #bfc2c7;
+    }
 
-:global(body.dark-mode) .update-item:focus {
-    box-shadow: 0 0 0 3px rgba(163, 168, 240, 0.6);
-}
+    :global(body.dark-mode) .update-item p {
+        color: #bfc2c7;
+    }
 
+    :global(body.dark-mode) .update-item small {
+        color: #717781;
+    }
+
+    :global(body.dark-mode) .update-item:focus {
+        box-shadow: 0 0 0 3px rgba(163, 168, 240, 0.6);
+    }
 </style>

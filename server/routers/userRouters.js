@@ -18,6 +18,14 @@ router.get('/api/users/get-all', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
+router.get('/api/users/user', isAuthenticated, async (req, res) => {
+    try{
+        const [user] = await db.promise().query('')
+    } catch (error){
+        res.status(500).json({ message: 'Error fetching user data'})
+    }
+})
+
 router.post('/api/users/update-user', isAuthenticated, isAdmin, async (req, res) => {
     const userReq = req.body.user;
     try{
@@ -27,4 +35,5 @@ router.post('/api/users/update-user', isAuthenticated, isAdmin, async (req, res)
         res.status(500).json({ message: 'Error updating the user' });
     }
 });
+
 export default router;
