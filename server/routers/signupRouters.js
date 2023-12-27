@@ -11,7 +11,9 @@ async function doesEmailExist(email) {
 
 router.post('/api/auth/signup', async (req, res) => {
     const { email, password, name } = req.body;
-
+    if( !email.includes('@goautonomous.io')){
+        return res.status(422).json({ message: 'Email needs to be a GoAutonomous email!' });
+    }
     if (await doesEmailExist(email)) {
         return res.status(409).json({ message: 'User with that email already exists.' });
     } else {
