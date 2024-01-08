@@ -346,7 +346,9 @@
                     <button class="wait-list" disabled={isDisabled(date)} on:click={() => openBookingModal(date)}>
                         <div class="select-icon">
                             <FaBars />
-                            <div class="tooltip">More</div>
+                            {#if !isDisabled(date)}
+                                <div class="tooltip">More</div>
+                            {/if}
                         </div>
                     </button>
                 {/if}

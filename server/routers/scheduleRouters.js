@@ -21,7 +21,6 @@ router.get('/api/waitlist/:date', isAuthenticated, async (req, res) => {
         );
         res.status(200).json(waitlist);
     } catch (err) {
-        console.log(err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -161,7 +160,6 @@ router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });
-        console.log(err);
     }
 });
 
@@ -201,7 +199,6 @@ router.delete('/api/bookings/cancel-shift', isAuthenticated, async (req, res) =>
 
 router.delete('/api/closed-days/:id', isAuthenticated, isAdmin, async (req, res) => {
     const { id } = req.params;
-
     try {
         await db.promise().query(`DELETE FROM closed_days WHERE id = ?`, [id]);
         res.status(200).json({ message: 'Closed days removed successfully' });

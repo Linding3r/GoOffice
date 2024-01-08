@@ -5,13 +5,17 @@
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
 
-
     let updateItems = [];
     const socket = io($BASE_URL);
     let showOfficeDays = false;
     let showUserUpdates = false;
     let showVacation = false;
     let showUserSettings = false;
+    let isVegan = false;
+    let isVegetarian = false;
+    let dietries = '';
+    let customHomeDays = false;
+    let workHomeDays = [];
 
     onMount(() => {
         if ($user) {
@@ -120,8 +124,19 @@
             </h2>
         </button>
         {#if showUserSettings}
-            <!--User settings-->
-            <p>User Settings</p>
+            <h3>Dietary requirements</h3>
+            <label>
+                Vegetarian
+                <input type="checkbox" bind:checked={isVegetarian} />
+            </label>
+            <label>
+                Vegan
+                <input type="checkbox" bind:checked={isVegan} />
+            </label>
+            <label>
+                Other Diatries
+                <input type="text" bind:value={dietries} />
+            </label>
         {/if}
     </div>
 
@@ -133,8 +148,37 @@
             </h2>
         </button>
         {#if showOfficeDays}
-            <!--Select Home working days-->
-            <p>Office Days</p>
+            <label>
+                <input type="checkbox" bind:checked={customHomeDays} />
+                Add reacuring home work days.
+            </label>
+            {#if customHomeDays}
+                <div class="weekdayBox">
+                    <h4>Chose which days you wish to work from home.</h4>
+                        <label>
+                            <input type="checkbox" bind:checked={workHomeDays[0]} />
+                            Monday
+                        </label>
+                        <label>
+                            <input type="checkbox" bind:checked={workHomeDays[1]} />
+                            Tuesday
+                        </label>
+                        <label>
+                            <input type="checkbox" bind:checked={workHomeDays[2]} />
+                            Wednesday
+                        </label>
+                        <label>
+                            <input type="checkbox" bind:checked={workHomeDays[3]} />
+                            Thursday
+                        </label>
+                        <label>
+                            <input type="checkbox" bind:checked={workHomeDays[4]} />
+                            Friday
+                        </label>
+                </div>
+            {:else}
+                <p></p>
+            {/if}
         {/if}
     </div>
 

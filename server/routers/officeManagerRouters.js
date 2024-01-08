@@ -15,19 +15,17 @@ function getWeekDateRange(year, weekNum) {
     return { start: weekStart, end: weekEnd };
 }
 
-router.get(
-    '/api/office/:year/:week',
-    /*isAuthenticated,*/ async (req, res) => {
-        try {
-            const year = parseInt(req.params.year);
-            const week = parseInt(req.params.week);
-            const { start, end } = getWeekDateRange(year, week);
+router.get('/api/office/:year/:week', isAuthenticated, async (req, res) => {
+    try {
+        const year = parseInt(req.params.year);
+        const week = parseInt(req.params.week);
+        const { start, end } = getWeekDateRange(year, week);
 
-            const startDate = start.toISOString().split('T')[0];
-            const endDate = end.toISOString().split('T')[0];
+        const startDate = start.toISOString().split('T')[0];
+        const endDate = end.toISOString().split('T')[0];
 
-            const sql = `
-            SELECT 
+        const query = `
+SELECT 
     dates.bookingDate, 
     IF(MAX(closed_days.id) IS NOT NULL, 'Office Closed', 
         COUNT(DISTINCT desk_bookings.user_id) +
@@ -49,16 +47,14 @@ WHERE
     dates.bookingDate BETWEEN ? AND ?
 GROUP BY 
     dates.bookingDate;
-
         `;
 
-            const [results] = await db.promise().query(sql, [startDate, startDate, endDate]);
-            res.status(200).json(results);
-        } catch (err) {
-            console.error('Error during database query:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        }
+        const [results] = await db.promise().query(query, [startDate, startDate, endDate]);
+        res.status(200).json(results);
+    } catch (err) {
+        console.error('Error during database query:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
-);
+});
 
 export default router;

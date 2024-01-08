@@ -4,12 +4,18 @@
     import { BASE_URL } from '../../stores/global';
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
+    import EditNewsModal from '../../component/EditNewsModal/EditNewsModal.svelte';
 
     let newsItems = [];
     const socket = io($BASE_URL);
 
     let currentPage = 1;
     const itemsPerPage = 3;
+
+    // let showNewsEditModal = false;
+    // let newsTitle = "";
+    // let newsDescription = "";
+    // let newsId = "";
 
     $: paginatedNewsItems = newsItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -25,7 +31,7 @@
 
     async function fetchInitialNews() {
         try {
-            const response = await fetch($BASE_URL + '/api/news/get-all');
+            const response = await fetch('/api/news/get-all');
             if (response.ok) {
                 const data = await response.json();
                 if (data.news) {
@@ -40,9 +46,23 @@
         }
     }
 
+    // async function updateNews(newsId, newsTitle, newsDescription) {
+    //     try {
+    //         const response = await fetch(`/api/news/update/${newsId}`, { method: 'POST' });
+    //         if (response.ok) {
+    //             toast.success('News successfully updated');
+    //         } else {
+    //             const errorText = await response.text();
+    //             throw new Error(errorText || 'Server responded with an error');
+    //         }
+    //     } catch (error) {
+    //         toast.error('An error occured while updating news: ' + error.message);
+    //     }
+    // }
+
     async function markNewsAsRead(newsId) {
         try {
-            const response = await fetch($BASE_URL + `/api/news/read/${newsId}`, { method: 'POST' });
+            const response = await fetch(`/api/news/read/${newsId}`, { method: 'POST' });
             if (response.ok) {
                 newsItems = newsItems.map(newsItem => (newsItem.id === newsId ? { ...newsItem, has_read: 1 } : newsItem));
             } else {
@@ -67,9 +87,19 @@
             markNewsAsRead(newsId);
         }
     }
+
+    // function openEditNewsModal(id, title, description){
+    //     showNewsEditModal = true;
+    //     newsId = id;
+    //     newsTitle = title;
+    //     newsDescription = description;
+    // }
 </script>
 
 <section>
+    <!-- {#if showNewsEditModal}
+     <EditNewsModal title={newsTitle} description={newsDescription} />
+    {/if} -->
     <Toaster />
     <h2>Latest News</h2>
     <div class="news-container">
@@ -82,12 +112,19 @@
                 role="button"
                 aria-pressed="false"
             >
+                <!-- {#if $user.isAdmin === 1}
+                <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}>Edit</button>
+                {/if} -->
                 {#if newsItem.has_read === 0}
                     <span class="badge">!</span>
                 {/if}
                 <h3>{newsItem.title}</h3>
                 <p>{@html formatNewsContent(newsItem.description)}</p>
-                <small>{new Date(newsItem.time).toLocaleString()}</small>
+                {#if newsItem.edited == null}
+                    <small>{new Date(newsItem.time).toLocaleString()}</small>
+                {:else}
+                    <small>edited - {new Date(newsItem.edited).toLocaleString()}</small>
+                {/if}
             </div>
         {/each}
     </div>
@@ -98,6 +135,13 @@
 </section>
 
 <style>
+    .edit-pen{
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        transform: translate(50%, -50%);
+    }
+
     .badge {
         background-color: red;
         color: white;

@@ -4,10 +4,14 @@ config();
 
 
 const connection = createConnection({
-    host: 'localhost',
+    //host: 'localhost',
+    host: process.env.MYSQL_CLOUD_HOST,
+
     user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE,
+    
+    //password: process.env.MYSQL_PASSWORD,
+    password: process.env.MYSQL_CLOUD_PASSWORD,
 });
 
 connection.connect(error => {

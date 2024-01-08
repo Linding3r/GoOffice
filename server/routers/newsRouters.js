@@ -78,4 +78,22 @@ router.post('/api/news/add', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
+router.post('/api/news/edit/:id', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const newsID = req.params.id;
+        const { title, description } = req.body;
+        const editedTime = new Date();
+
+        const [result] = await db.promise().query('UPDATE news SET title=?,description=?, edited=? WHERE id=?', [title, description, editedTime ,newsID]);
+
+        if(result){
+            res.status(200).json({ message: "News successfully updated"});
+            io.emit('newsUpdate');
+        }
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating news'});
+    }
+})
+
 export default router;

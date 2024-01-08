@@ -24,13 +24,9 @@ export async function checkForWaitlistAndBook(bookingId) {
                     io.emit('bookingUpdate');
                     sendUserUpdate(waitlistUser.user_id, waitlistUser.shift, date)
                 }
-            } else {
-                console.log('No users in waitlist');
-            }
-        } else {
-            console.log('No desk booking found');
-        }
+            } 
+        } 
     } catch (err) {
-        console.error('Internal Server Error', err);
+        return new Error('Internal Server Error', err);
     }
 }
