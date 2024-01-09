@@ -6,9 +6,7 @@ const router = Router();
 
 router.post('/api/auth/login', async (req, res) => {
     try {
-        console.log('Testing login start')
         const [users] = await db.promise().query(`SELECT * FROM users WHERE email = ?;`, [req.body.email]);
-        console.log('Testing login after DB search')
         const user = users[0];
         if (!user) {
             res.status(404).json({ message: `No user found with email: ${req.body.email}` });

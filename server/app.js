@@ -5,13 +5,28 @@ import express from 'express';
 const app = express();
 
 import session from 'express-session';
+import MySQLStore from 'express-mysql-session';
+
+const options = {
+    host: process.env.MYSQL_CLOUD_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_CLOUD_PASSWORD,
+    database: process.env.MYSQL_DATABASE
+};
+
+const sessionStore = new MySQLStore(options);
+
 app.use(
     session({
+        key: 'session_cookie_name',
         secret: process.env.SESSION_SECRET,
         resave: false,
+        store: sessionStore,
         saveUninitialized: false,
         cookie: { secure: true },
-        sameSite: 'lax',
+        //False for localhost
+        //cookie: { secure: false },
+        //sameSite: 'lax',
     })
 );
 
@@ -50,7 +65,7 @@ const allRoutesLimiter = rateLimit({
     legacyHeaders: false, 
 });
 
-//app.use(allRoutesLimiter);
+app.use(allRoutesLimiter);
 
 const loginRateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, 
@@ -59,7 +74,7 @@ const loginRateLimiter = rateLimit({
     legacyHeaders: false, 
 });
 
-//app.use('/api/auth/login', loginRateLimiter);
+app.use('/api/auth/login', loginRateLimiter);
 
 import authRouters from './routers/authRouters.js';
 app.use(authRouters);
