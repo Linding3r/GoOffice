@@ -6,15 +6,22 @@ const app = express();
 
 import session from 'express-session';
 import MySQLStore from 'express-mysql-session';
+import { createPool } from 'mysql2';
 
-const options = {
+const options = createPool({
     host: process.env.MYSQL_CLOUD_HOST,
     user: process.env.MYSQL_USER,
     password: process.env.MYSQL_CLOUD_PASSWORD,
     database: process.env.MYSQL_DATABASE
-};
+});
 
-const sessionStore = new MySQLStore(options);
+const sessionStore = new (MySQLStore(session))({
+    clearExpired: true,
+    expiration: 86400000,
+      checkExpirationInterval: 3600000,
+    createDatabaseTable: true,
+      }, 
+    options);
 
 app.use(
     session({
