@@ -14,7 +14,12 @@ router.post('/api/auth/login', async (req, res) => {
             if (await checkPassword(req.body.password, user.password)) {
                 req.session.isAuthenticated = true;
                 req.session.user = { name: user.name, is_admin: user.is_admin, user_id: user.id, department_id: user.department_id };
-                res.status(200).json({ message: 'Login successful', name: user.name });
+                req.session.save(err => {
+                    if (err) {
+                        throw err;
+                    }
+                    res.status(200).json({ message: 'Login successful', name: user.name });
+                });
             } else {
                 res.status(401).json({ message: 'Wrong password or email' });
             }
