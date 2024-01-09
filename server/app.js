@@ -70,6 +70,7 @@ const allRoutesLimiter = rateLimit({
     limit: 500,
     standardHeaders: 'draft-7', 
     legacyHeaders: false, 
+    validate: {xForwardedForHeader: false}
 });
 
 app.use(allRoutesLimiter);
@@ -79,6 +80,7 @@ const loginRateLimiter = rateLimit({
     limit: 10,
     standardHeaders: 'draft-7', 
     legacyHeaders: false, 
+    validate: {xForwardedForHeader: false}
 });
 
 app.use('/api/auth/login', loginRateLimiter);
