@@ -10,7 +10,7 @@ app.use(
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: false },
+        cookie: { secure: true },
         sameSite: 'lax',
     })
 );
@@ -50,7 +50,7 @@ const allRoutesLimiter = rateLimit({
     legacyHeaders: false, 
 });
 
-app.use(allRoutesLimiter);
+//app.use(allRoutesLimiter);
 
 const loginRateLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, 
@@ -59,7 +59,7 @@ const loginRateLimiter = rateLimit({
     legacyHeaders: false, 
 });
 
-app.use('/api/auth/login', loginRateLimiter);
+//app.use('/api/auth/login', loginRateLimiter);
 
 import authRouters from './routers/authRouters.js';
 app.use(authRouters);
