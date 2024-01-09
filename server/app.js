@@ -29,10 +29,11 @@ app.use(
         resave: false,
         store: sessionStore,
         saveUninitialized: false,
-        cookie: { secure: true },
-        //False for localhost
-        //cookie: { secure: false },
-        //sameSite: 'lax',
+        cookie: { 
+            secure: false, 
+            httpOnly: true,
+            sameSite: 'lax'
+        }
     })
 );
 

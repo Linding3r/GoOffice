@@ -26,6 +26,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+                credentials: 'include',
             })
                 .then(response => {
                     if (response.status === 429) {
