@@ -25,7 +25,6 @@ const sessionStore = new (MySQLStore(session))({
 
 app.use(
     session({
-        key: 'session_cookie_name',
         secret: process.env.SESSION_SECRET,
         resave: false,
         store: sessionStore,
