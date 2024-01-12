@@ -5,7 +5,7 @@
     import { user } from '../../stores/userStore';
     import io from 'socket.io-client';
     import ConfirmationModal from '../../component/ConfirmationModal/ConfirmationModal.svelte';
-    import { Plane } from 'svelte-loading-spinners';
+    import { SyncLoader } from 'svelte-loading-spinners';
     import FaBars from 'svelte-icons/fa/FaBars.svelte';
     import BookingModal from '../../component/BookingModal/BookingModal.svelte';
 
@@ -127,7 +127,7 @@
 
     async function bookShift(date, type) {
         try {
-            const response = await fetch($BASE_URL + '/api/bookings/book-shift', {
+            const response = await fetch($BASE_URL + '/api/bookings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shift_date: date, shift_type: type }),
@@ -144,7 +144,7 @@
 
     async function cancelShift(bookingId) {
         try {
-            const response = await fetch($BASE_URL + '/api/bookings/cancel-shift', {
+            const response = await fetch($BASE_URL + '/api/bookings', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_id: bookingId }),
@@ -237,7 +237,7 @@
 
     async function cancelWaitlist(id) {
         try {
-            const response = await fetch(`${$BASE_URL}/api/waitlist/cancel`, {
+            const response = await fetch(`${$BASE_URL}/api/waitlist`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ waitlist_id: id }),
@@ -254,7 +254,7 @@
 
     async function joinWaitlist(date, shiftType) {
         try {
-            const response = await fetch(`${$BASE_URL}/api/waitlist/join`, {
+            const response = await fetch(`${$BASE_URL}/api/waitlist`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shift_date: date, shift_type: shiftType, user_id: currentUser.user_id }),
@@ -291,11 +291,11 @@
     />
 {/if}
 
-<div class="booking-container">
-    <h1>Desk Bookings</h1>
-    {#if loading}
-        <Plane size="100" color="#535bf2" unit="px" />
-    {:else}
+{#if loading}
+    <SyncLoader size="100" color="#535bf2" unit="px" />
+{:else}
+    <div class="booking-container">
+        <h1>Desk Bookings</h1>
         {#each Object.keys(bookings) as date (date)}
             {#if new Date(date.split('-').reverse().join('-')).getDay() == 1}
                 <div class="week-number">Week {getWeekNumber(date)}</div>
@@ -375,8 +375,8 @@
                 {/each}
             </div>
         {/each}
-    {/if}
-</div>
+    </div>
+{/if}
 
 <style>
     :global(body.dark-mode) .select-icon {

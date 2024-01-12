@@ -1,11 +1,11 @@
 <script>
     import { onMount } from 'svelte';
     import toast, { Toaster } from 'svelte-french-toast';
-    import { Plane } from 'svelte-loading-spinners';
+    import { SyncLoader } from 'svelte-loading-spinners';
 
     let selectedWeek = '';
     let workforceData = [];
-    let loading = false;
+    let loading = true;
 
     function getWeekOptions() {
         const currentWeek = getWeekNumber(new Date().toISOString().split('T')[0]);
@@ -24,17 +24,16 @@
 
     async function fetchWorkforceData(week, year) {
         if (!week) return;
-        loading = true;
         try {
             const response = await fetch(`/api/office/${year}/${week}`);
-            if (!response.ok) {
+            if (response.ok) {
+                workforceData = await response.json();
+                loading = false;
+            } else {
                 throw new Error(`Server responded with status: ${response.status}`);
             }
-            workforceData = await response.json();
         } catch (error) {
             toast.error('Error fetching workforce data: ' + error.message);
-        } finally {
-            loading = false;
         }
     }
 
@@ -48,14 +47,12 @@
         });
     }
 
-
     function getWeekNumber(dateString) {
-    const date = new Date(dateString);
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000; 
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-}
-
+        const date = new Date(dateString);
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    }
 
     onMount(() => {
         const currentWeek = getWeekNumber(new Date().toISOString().split('T')[0]);
@@ -63,30 +60,29 @@
         selectedWeek = `${currentYear}-${currentWeek}`;
         fetchWorkforceData(currentWeek, currentYear);
     });
-
 </script>
 
-
 <Toaster />
-<div class="container">
-    <h1>Office Manager</h1>
-    <p>Select a week number to check how many will be at the office</p>
-    <div class="dropdown-container">
-        <select bind:value={selectedWeek} on:change={() => {
-            const [year, week] = selectedWeek.split('-');
-            fetchWorkforceData(parseInt(week), parseInt(year));
-        }}>
-            <option value="">Select a Week</option>
-            {#each getWeekOptions() as { week, year }}
-                <option value={`${year}-${week}`}>Week {week} ({year})</option>
-            {/each}
-        </select>
-    </div>
-    
-
-    {#if loading}
-        <Plane size="100" color="#535bf2" unit="px" />
-    {:else if workforceData.length > 0}
+{#if loading}
+    <SyncLoader size="100" color="#535bf2" unit="px" />
+{:else if workforceData.length > 0}
+    <div class="container">
+        <h1>Office Manager</h1>
+        <p>Select a week number to check how many will be at the office</p>
+        <div class="dropdown-container">
+            <select
+                bind:value={selectedWeek}
+                on:change={() => {
+                    const [year, week] = selectedWeek.split('-');
+                    fetchWorkforceData(parseInt(week), parseInt(year));
+                }}
+            >
+                <option value="">Select a Week</option>
+                {#each getWeekOptions() as { week, year }}
+                    <option value={`${year}-${week}`}>Week {week} ({year})</option>
+                {/each}
+            </select>
+        </div>
         <div class="workforce-container">
             {#each workforceData as dayData}
                 <div class="day-row">
@@ -99,8 +95,8 @@
                 </div>
             {/each}
         </div>
-    {/if}
-</div>
+    </div>
+{/if}
 
 <style>
     .container {

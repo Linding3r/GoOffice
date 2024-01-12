@@ -5,9 +5,11 @@
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
     import EditNewsModal from '../../component/EditNewsModal/EditNewsModal.svelte';
+    import { SyncLoader } from 'svelte-loading-spinners';
 
     let newsItems = [];
     const socket = io($BASE_URL);
+    let loading = true
 
     let currentPage = 1;
     const itemsPerPage = 3;
@@ -35,6 +37,7 @@
             if (response.ok) {
                 const data = await response.json();
                 if (data.news) {
+                    loading = false;
                     newsItems = data.news;
                 }
             } else {
@@ -48,7 +51,7 @@
 
     // async function updateNews(newsId, newsTitle, newsDescription) {
     //     try {
-    //         const response = await fetch(`/api/news/update/${newsId}`, { method: 'POST' });
+    //         const response = await fetch(`/api/news/${newsId}`, { method: 'POST' });
     //         if (response.ok) {
     //             toast.success('News successfully updated');
     //         } else {
@@ -96,11 +99,15 @@
     // }
 </script>
 
-<section>
+
     <!-- {#if showNewsEditModal}
      <EditNewsModal title={newsTitle} description={newsDescription} />
     {/if} -->
     <Toaster />
+    {#if loading}
+    <SyncLoader size="100" color="#535bf2" unit="px" />
+    {:else}
+    <section>
     <h2>Latest News</h2>
     <div class="news-container">
         {#each paginatedNewsItems as newsItem (newsItem.id)}
@@ -133,6 +140,7 @@
         <button on:click={() => (currentPage = Math.min(getTotalPages(), currentPage + 1))} disabled={currentPage === getTotalPages()}>Next</button>
     </div>
 </section>
+{/if}
 
 <style>
     .edit-pen{

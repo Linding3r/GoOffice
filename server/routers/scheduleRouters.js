@@ -76,7 +76,7 @@ router.get('/api/closed-days', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/api/bookings/book-shift', isAuthenticated, async (req, res) => {
+router.post('/api/bookings', isAuthenticated, async (req, res) => {
     const user = req.session.user;
     const shift = req.body.shift_type;
     const date = moment(req.body.shift_date, 'DD-MM-YYYY').format('YYYY-MM-DD');
@@ -132,7 +132,7 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
+router.post('/api/waitlist', isAuthenticated, async (req, res) => {
     const user_id = req.session.user.user_id;
     const userDepartmentId = req.session.user.department_id;
     const { shift_type } = req.body;
@@ -163,7 +163,7 @@ router.post('/api/waitlist/join', isAuthenticated, async (req, res) => {
     }
 });
 
-router.delete('/api/waitlist/cancel', isAuthenticated, async (req, res) => {
+router.delete('/api/waitlist', isAuthenticated, async (req, res) => {
     const id = req.body.waitlist_id;
     try {
         const [result] = await db.promise().query(`DELETE FROM booking_wait_list WHERE id = ?`, [id]);
@@ -179,7 +179,7 @@ router.delete('/api/waitlist/cancel', isAuthenticated, async (req, res) => {
 });
 
 
-router.delete('/api/bookings/cancel-shift', isAuthenticated, async (req, res) => {
+router.delete('/api/bookings', isAuthenticated, async (req, res) => {
     const bookingId = req.body.booking_id;
 
     try {

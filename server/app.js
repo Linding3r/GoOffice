@@ -40,14 +40,6 @@ app.use(
 import path from 'path';
 app.use(express.static(path.resolve('../client/dist')));
 
-import cors from 'cors';
-app.use(
-    cors({
-        credentials: true,
-        origin: true,
-    })
-);
-
 import { Server } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 

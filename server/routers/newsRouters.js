@@ -62,7 +62,7 @@ router.post('/api/news/read/:newsId', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/api/news/add', isAuthenticated, isAdmin, async (req, res) => {
+router.post('/api/news', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const { title, description } = req.body;
 
@@ -78,7 +78,7 @@ router.post('/api/news/add', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/api/news/edit/:id', isAuthenticated, isAdmin, async (req, res) => {
+router.post('/api/news/:id', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const newsID = req.params.id;
         const { title, description } = req.body;

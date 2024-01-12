@@ -108,6 +108,9 @@
 
             if (response.ok) {
                 toast.success('Successfully added closed period');
+                closedFrom = today;
+                closedTo = '';
+                closedReason = '';
                 fetchClosedDays();
             } else {
                 toast.error('Error adding closed period');
@@ -170,7 +173,7 @@
 
     async function addNews() {
         try {
-            const response = await fetch($BASE_URL + '/api/news/add', {
+            const response = await fetch($BASE_URL + '/api/news', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -182,6 +185,8 @@
             });
 
             if (response.ok) {
+                title = '';
+                description = '';
                 toast.success('News added successfully');
             }
         } catch (error) {

@@ -19,7 +19,7 @@
     import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte';
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
     import { BASE_URL } from './stores/global.js';
-    import { Plane } from 'svelte-loading-spinners';
+    import { SyncLoader } from 'svelte-loading-spinners';
     import OfficeManager from './pages/OfficeManager/OfficeManager.svelte';
     import Badge from './component/Badge/Badge.svelte';
     import FaUserAstronaut from 'svelte-icons/fa/FaUserAstronaut.svelte';
@@ -173,7 +173,7 @@
             </main>
         {/if}
     {:else}
-        <Plane size="100" color="#535bf2" unit="px" />
+        <SyncLoader size="100" color="#535bf2" unit="px" />
     {/if}
 </Router>
 
