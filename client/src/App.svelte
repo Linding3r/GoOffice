@@ -90,11 +90,23 @@
     }
 
     onMount(async () => {
+        injectCookiebotScripts();
         await checkAuthStatus();
         socket.on('updateNotification', fetchUserUpdateNumber);
         socket.on('newsNotification', fetchUserNewsNumber);
         isLoading = false;
     });
+
+    function injectCookiebotScripts() {
+        const cookiebotScript = document.createElement('script');
+        cookiebotScript.id = 'Cookiebot';
+        cookiebotScript.src = 'https://consent.cookiebot.com/uc.js';
+        cookiebotScript.setAttribute('data-cbid', '7eb6cb2a-4d99-4ff9-9f64-77ad42c4e290');
+        cookiebotScript.type = 'text/javascript';
+        cookiebotScript.async = true;
+
+        document.head.appendChild(cookiebotScript);
+    }
 
     $: isAuthenticated = $user !== null;
     $: if ($user) fetchUserData();
