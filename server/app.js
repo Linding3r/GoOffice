@@ -30,7 +30,7 @@ app.use(
         store: sessionStore,
         saveUninitialized: false,
         cookie: { 
-            secure: true, 
+            secure: false, 
             httpOnly: true,
             sameSite: 'lax'
         }
