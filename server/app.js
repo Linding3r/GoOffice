@@ -37,6 +37,9 @@ app.use(
     })
 );
 
+import { requestLogger } from './util/eventLogger.js';
+app.use(requestLogger)
+
 import path from 'path';
 app.use(express.static(path.resolve('../client/dist')));
 
