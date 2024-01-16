@@ -16,9 +16,11 @@
     let dietries = '';
     let customHomeDays = false;
     let workHomeDays = [];
+    const pageTitle = 'Go Office | Profile'
 
     onMount(() => {
         if ($user) {
+            document.title = pageTitle;
             fetchInitialUpdates();
             socket.on('updateNotification', fetchInitialUpdates);
         }
@@ -287,6 +289,10 @@
         align-items: end;
     }
 
+    :global(body.dark-mode) .section-title {
+        color: #bfc2c7;
+    }
+
     :global(body.dark-mode) section {
         color: #bfc2c7;
     }
@@ -306,5 +312,14 @@
 
     :global(body.dark-mode) .update-item:focus {
         box-shadow: 0 0 0 3px rgba(163, 168, 240, 0.6);
+    }
+    :global(body.dark-mode) .admin-section {
+        color: #bfc2c7;
+        background-color: #1b1c23;
+    }
+
+
+    :global(body.dark-mode) .section-title-button:hover {
+        background-color: #333;
     }
 </style>

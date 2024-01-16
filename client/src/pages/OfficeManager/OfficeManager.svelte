@@ -6,6 +6,7 @@
     let selectedWeek = '';
     let workforceData = [];
     let loading = true;
+    const pageTitle = 'Go Office | Office Manager'
 
     function getWeekOptions() {
         const currentWeek = getWeekNumber(new Date().toISOString().split('T')[0]);
@@ -55,6 +56,7 @@
     }
 
     onMount(() => {
+        document.title = pageTitle;
         const currentWeek = getWeekNumber(new Date().toISOString().split('T')[0]);
         const currentYear = new Date().getFullYear();
         selectedWeek = `${currentYear}-${currentWeek}`;

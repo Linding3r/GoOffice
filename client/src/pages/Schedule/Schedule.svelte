@@ -25,9 +25,11 @@
     let isFullyBookedAfternoon = false;
     let hasAfternoonBooking = false;
     let hasMorningBooking = false;
+    const pageTitle = 'Go Office | Schedule'
 
     onMount(() => {
         if ($user) {
+            document.title = pageTitle;
             fetchClosedDays();
             fetchBookings();
             socket.on('bookingUpdate', fetchBookings);

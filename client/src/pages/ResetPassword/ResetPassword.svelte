@@ -8,8 +8,10 @@
     let token;
     let newPassword = '';
     let confirmPassword = '';
+    const pageTitle = 'Reset Password'
 
     onMount(() => {
+        document.title = pageTitle; 
         const queryParams = new URLSearchParams(window.location.search);
         token = queryParams.get('token');
 

@@ -22,6 +22,7 @@
     let showUserManagement = false;
     let showNewsManagement = false;
     let showLogs = false;
+    let pageTitle = 'Go Office | Admin'
 
     const filteredUsers = derived([users, searchQuery], ([$users, $searchQuery]) => {
         return $users.filter(
@@ -197,6 +198,7 @@
     }
 
     onMount(() => {
+        document.title = pageTitle;
         fetchUsers();
         fetchClosedDays();
         fetchDepartments();

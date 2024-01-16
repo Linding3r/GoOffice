@@ -10,6 +10,7 @@
     let newsItems = [];
     const socket = io($BASE_URL);
     let loading = true
+    const pageTitle = 'Go Office | Home'
 
     let currentPage = 1;
     const itemsPerPage = 3;
@@ -23,6 +24,7 @@
 
     onMount(() => {
         if ($user) {
+            document.title = pageTitle;
             fetchInitialNews();
             socket.on('newsUpdate', fetchInitialNews);
         }

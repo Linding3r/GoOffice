@@ -1,5 +1,6 @@
 <script>
     import toast from 'svelte-french-toast';
+    import { onMount } from 'svelte';
     import { navigate } from 'svelte-navigator';
     import { user } from '../../stores/userStore.js';
     import { checkAuthStatus } from '../../component/Authentication/authentication.js';
@@ -8,6 +9,7 @@
     import { BASE_URL } from '../../stores/global.js';
 
     let rightPanelActive = false;
+    const pageTitle = 'Go Office'
 
     function togglePanel() {
         rightPanelActive = !rightPanelActive;
@@ -89,6 +91,11 @@
             }
         );
     }
+
+    onMount(() => {
+        document.title = pageTitle;
+    });
+
 </script>
 
 <div class="switch"><DarkmodeSwitch /></div>

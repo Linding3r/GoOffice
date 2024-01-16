@@ -9,16 +9,16 @@ export async function requestLogger(req, res, next) {
 
     function logger() {
         const duration = Date.now() - start;
+        const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
         if (req.path.includes('/api/')) {
             const log = {
                 method: req.method,
-                path: req.path,
-                ip: req.ip,
+                path: fullUrl,
                 status: res.statusCode,
                 time: duration,
                 session_user: user
             };
-            db.promise().query(`INSERT INTO logs (path, methode, ip, status, response_time, session_user_id) VALUES (?,?,?,?,?,?)`, [log.path, log.method, log.ip, log.status, log.time, log.session_user]);
+            db.promise().query(`INSERT INTO logs (path, methode, status, response_time, session_user_id) VALUES (?,?,?,?,?)`, [log.path, log.method, log.status, log.time, log.session_user]);
         }
     }
     res.on('finish', logger);
