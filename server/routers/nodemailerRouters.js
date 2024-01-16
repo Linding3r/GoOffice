@@ -21,7 +21,7 @@ router.post('/api/auth/request-password-reset', async (req, res) => {
 
             await db.promise().query(`UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE email = ?`, [resetToken, expireTime, email]);
 
-            const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
+            const resetLink = `https://go-office.onrender.com/reset-password?token=${resetToken}`;
             const transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
                 port: process.env.SMTP_PORT,

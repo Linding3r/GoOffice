@@ -20,6 +20,7 @@
     let showDepartmentManagement = false;
     let showUserManagement = false;
     let showNewsManagement = false;
+    let showLogs = false;
 
     const filteredUsers = derived([users, searchQuery], ([$users, $searchQuery]) => {
         return $users.filter(
@@ -168,6 +169,8 @@
             showUserManagement = !showUserManagement;
         } else if (section === 'newsManagement') {
             showNewsManagement = !showNewsManagement;
+        } else if (section === 'logs') {
+            showLogs = !showLogs;
         }
     }
 
@@ -330,6 +333,17 @@
             </div>
         {/if}
     </div>
+        <div class="admin-section">
+            <button class="section-title-button" on:click={() => toggleSection('logs')}>
+                <h2 class="section-title">
+                    Logs
+                    <span class="dropdown-arrow">{showLogs ? '▲' : '▼'}</span>
+                </h2>
+            </button>
+            {#if showLogs}
+               Logs
+            {/if}
+        </div>
 </section>
 
 <style>

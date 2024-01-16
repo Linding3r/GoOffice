@@ -18,7 +18,7 @@ const options = createPool({
 const sessionStore = new (MySQLStore(session))({
     clearExpired: true,
     expiration: 86400000,
-      checkExpirationInterval: 3600000,
+    checkExpirationInterval: 3600000,
     createDatabaseTable: true,
       }, 
     options);
