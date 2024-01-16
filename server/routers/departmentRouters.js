@@ -15,13 +15,14 @@ router.get('/api/departments', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/api/departments/update:id', isAuthenticated, isAdmin, async (req, res) => {
-    const desksNumber = req.body.desksNumber;
-    const { departmentId } = req.params;
-
+router.post('/api/departments/update/:id', isAuthenticated, isAdmin, async (req, res) => {
+    const desksNumber = req.body.value;
+    const departmentId = parseInt(req.params.id);
     try {
-        await db.promise().query(`UPDATE departments SET num_desks=? WHERE id=?`, [desksNumber, departmentId]);
+        const result = await db.promise().query(`UPDATE departments SET num_desks=? WHERE id=?`, [desksNumber, departmentId]);
+        if(result){
         res.status(200).json({ message: 'Department has been updated' });
+        }
     } catch (error) {
         res.status(500).json({ message: 'Error updating the department' });
     }

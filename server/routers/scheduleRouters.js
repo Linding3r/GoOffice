@@ -126,6 +126,7 @@ router.post('/api/closed-days', isAuthenticated, isAdmin, async (req, res) => {
         const result = await db.promise().query(`INSERT INTO closed_days (start_date, end_date, reason) VALUES (?, ?, ?)`, [start_date, end_date, reason]);
         if (result) {
             res.status(200).json({ message: 'Closed period added successfully' });
+            io.emit('updateNotification')
         }
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });

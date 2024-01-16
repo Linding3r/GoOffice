@@ -353,27 +353,29 @@
                     </button>
                 {/if}
             </div>
-            <div class="bookings-list">
-                {#each processBookings(date) as booking}
-                    <div class="booking-entry">
-                        {#if currentUser.isAdmin === 1}
-                            <span>{booking.name} - {booking.icon}</span>
-                            {#if !isDisabled(date)}
-                                <div class="admin-cancel-button-container">
-                                    {#if booking.morningID}
-                                        <button class="admin-cancel" on:click={() => openConfirmationModal(booking.morningID)}>☀️</button>
-                                    {/if}
-                                    {#if booking.afternoonID}
-                                        <button class="admin-cancel" on:click={() => openConfirmationModal(booking.afternoonID)}>🌚</button>
-                                    {/if}
-                                </div>
+            {#if !isClosedDay(date)}
+                <div class="bookings-list">
+                    {#each processBookings(date) as booking}
+                        <div class="booking-entry">
+                            {#if currentUser.isAdmin === 1}
+                                <span>{booking.name} - {booking.icon}</span>
+                                {#if !isDisabled(date)}
+                                    <div class="admin-cancel-button-container">
+                                        {#if booking.morningID}
+                                            <button class="admin-cancel" on:click={() => openConfirmationModal(booking.morningID)}>☀️</button>
+                                        {/if}
+                                        {#if booking.afternoonID}
+                                            <button class="admin-cancel" on:click={() => openConfirmationModal(booking.afternoonID)}>🌚</button>
+                                        {/if}
+                                    </div>
+                                {/if}
+                            {:else}
+                                <span>{booking.name} - {booking.icon}</span>
                             {/if}
-                        {:else}
-                            <span>{booking.name} - {booking.icon}</span>
-                        {/if}
-                    </div>
-                {/each}
-            </div>
+                        </div>
+                    {/each}
+                </div>
+            {/if}
         {/each}
     </div>
 {/if}

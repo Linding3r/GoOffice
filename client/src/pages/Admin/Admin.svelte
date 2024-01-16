@@ -14,6 +14,7 @@
     let closedReason = '';
     let title = '';
     let description = '';
+    let inputRef = null;
     let closedDays = [];
     let departments = [];
     let showScheduleManagement = false;
@@ -36,10 +37,8 @@
         }
     }
 
-    async function handleDepartmentUpdate(id, event) {
-        const selectElement = event.target;
-        let value = selectElement.value;
-
+    async function handleDepartmentUpdate(id) {
+        let value = inputRef.value;
         try {
             const response = await fetch($BASE_URL + `/api/departments/update/${id}`, {
                 method: 'POST',
@@ -289,14 +288,16 @@
         </button>
         {#if showDepartmentManagement}
             {#each departments as department (department.id)}
-                <div class="user-item">
-                    <div class="user-name">{department.name}</div>
-                    <div class="input-group">
-                        <label for="desk-number">Number of Desks</label>
-                        <input type="number" id="desk-number" value={department.num_desks} />
-                        <button on:click={() => handleDepartmentUpdate(department.id)}>Edit</button>
+                {#if department.id !== 7 && department.id !== 6}
+                    <div class="user-item">
+                        <div class="user-name">{department.name}</div>
+                        <div class="input-group">
+                            <label for="desk-number">Number of Desks</label>
+                            <input bind:this={inputRef} type="number" id="desk-number" value={department.num_desks} />
+                            <button on:click={() => handleDepartmentUpdate(department.id)}>Edit</button>
+                        </div>
                     </div>
-                </div>
+                {/if}
             {/each}
         {/if}
     </div>
@@ -333,17 +334,17 @@
             </div>
         {/if}
     </div>
-        <div class="admin-section">
-            <button class="section-title-button" on:click={() => toggleSection('logs')}>
-                <h2 class="section-title">
-                    Logs
-                    <span class="dropdown-arrow">{showLogs ? '▲' : '▼'}</span>
-                </h2>
-            </button>
-            {#if showLogs}
-               Logs
-            {/if}
-        </div>
+    <div class="admin-section">
+        <button class="section-title-button" on:click={() => toggleSection('logs')}>
+            <h2 class="section-title">
+                Logs
+                <span class="dropdown-arrow">{showLogs ? '▲' : '▼'}</span>
+            </h2>
+        </button>
+        {#if showLogs}
+            Logs
+        {/if}
+    </div>
 </section>
 
 <style>

@@ -8,3 +8,4 @@ export async function sendUserUpdate(userId, shift, date) {
     await db.promise().query(`INSERT INTO user_updates (user_id, update_description) VALUES (?, ?)`, [userId, message]);
     io.emit('updateNotification')
 }
+
