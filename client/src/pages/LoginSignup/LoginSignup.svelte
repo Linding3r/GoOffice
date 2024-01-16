@@ -15,7 +15,7 @@
         rightPanelActive = !rightPanelActive;
     }
 
-    let loginEmail = 'thomas@goautonomous.io';
+    let loginEmail;
     let loginPassword;
     let confirmPassword;
     let signupPassword;
