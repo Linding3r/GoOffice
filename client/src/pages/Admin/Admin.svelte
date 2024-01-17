@@ -7,6 +7,7 @@
 
     const searchQuery = writable('');
     const users = writable([]);
+    let logs = [];
 
     let today = new Date().toISOString().split('T')[0];
     let closedFrom = today;
@@ -22,7 +23,8 @@
     let showUserManagement = false;
     let showNewsManagement = false;
     let showLogs = false;
-    let pageTitle = 'Go Office | Admin'
+    let selectedHours = 2;
+    let pageTitle = 'Go Office | Admin';
 
     const filteredUsers = derived([users, searchQuery], ([$users, $searchQuery]) => {
         return $users.filter(
@@ -31,7 +33,7 @@
     });
 
     async function fetchDepartments() {
-        const response = await fetch($BASE_URL + '/api/departments');
+        const response = await fetch('/api/departments');
         if (response.ok) {
             const data = await response.json();
             departments = data;
@@ -41,7 +43,7 @@
     async function handleDepartmentUpdate(id) {
         let value = inputRef.value;
         try {
-            const response = await fetch($BASE_URL + `/api/departments/update/${id}`, {
+            const response = await fetch(`/api/departments/update/${id}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ value }),
@@ -71,7 +73,7 @@
     }
 
     async function fetchUsers() {
-        const response = await fetch($BASE_URL + '/api/users/get-all');
+        const response = await fetch('/api/users/get-all');
         if (response.ok) {
             const data = await response.json();
             users.set(data.users);
@@ -97,7 +99,7 @@
             return;
         }
         try {
-            const response = await fetch($BASE_URL + '/api/closed-days', {
+            const response = await fetch('/api/closed-days', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -123,7 +125,7 @@
 
     async function fetchClosedDays() {
         try {
-            const response = await fetch($BASE_URL + '/api/closed-days');
+            const response = await fetch('/api/closed-days');
             if (response.ok) {
                 closedDays = await response.json();
             } else {
@@ -141,7 +143,7 @@
 
     async function deleteClosedDay(id) {
         try {
-            const response = await fetch($BASE_URL + `/api/closed-days/${id}`, {
+            const response = await fetch(`/api/closed-days/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -176,7 +178,7 @@
 
     async function addNews() {
         try {
-            const response = await fetch($BASE_URL + '/api/news', {
+            const response = await fetch('/api/news', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -197,8 +199,28 @@
         }
     }
 
+
+    async function fetchLogs() {
+        try {
+            const response = await fetch(`/api/logs/${selectedHours}`);
+            if (response.ok) {
+                const data = await response.json();
+                logs = data; 
+            } else {
+                toast.error('Failed to fetch logs');
+            }
+        } catch (error) {
+            toast.error('Error fetching logs:', error);
+        }
+    }
+
+    function handleHoursChange() {
+        fetchLogs();
+    }
+
     onMount(() => {
         document.title = pageTitle;
+        fetchLogs();
         fetchUsers();
         fetchClosedDays();
         fetchDepartments();
@@ -344,12 +366,50 @@
             </h2>
         </button>
         {#if showLogs}
-            Logs
+        <div class="hours-selector">
+            <label for="hours">Select Hours: </label>
+            <select id="hours" bind:value={selectedHours} on:change={handleHoursChange}>
+                <option value="2">2 Hours</option>
+                <option value="5">5 Hours</option>
+                <option value="10">10 Hours</option>
+                <option value="24">24 Hours</option>
+                <option value="48">48 Hours</option>
+            </select>
+        </div>
+            <div class="logs-window-box">
+                {#each logs as log}
+                    <div class="log-entry">
+                        {log.timestamp} - {log.response_time}ms - STATUS: {log.status} - {log.method} -PATH: {log.path} - USER_ID: {log.session_user_id} - BODY: {log.body}
+                    </div>
+                {/each}
+            </div>
         {/if}
     </div>
 </section>
 
 <style>
+    .hours-selector {
+        margin-bottom: 10px;
+    }
+
+    .hours-selector label {
+        margin-right: 10px;
+    }
+
+    .logs-window-box {
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+    }
+
+    .log-entry {
+        padding: 5px 0;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+        font-size: small;
+    }
     .users-list {
         margin-top: 20px;
     }

@@ -110,6 +110,9 @@ app.use(officeManagerRouter);
 import userUpdateRouters from './routers/userUpdateRouters.js';
 app.use(userUpdateRouters);
 
+import logRouters from './routers/logRouters.js';
+app.use(logRouters);
+
 app.get('*', (req, res) => {
     res.sendFile(path.resolve('../client/dist/index.html'));
 });
