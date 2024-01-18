@@ -81,7 +81,7 @@
                 },
             });
             if (response.ok) {
-                toast.success('News successfully delted');
+                toast.success('News successfully deleted');
             }
         } catch (error) {
             toast.error('An error occured while deleting news: ' + error.message);
@@ -107,6 +107,13 @@
     }
 
     function formatNewsContent(content) {
+        content = content.replace(/#(\w+)/g, '<span style="color:blue">#$1</span>');
+
+        content = content.replace(/__(.+?)__/g, '<span style="font-weight:bold;">$1</span>');
+
+        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
+        content = content.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+
         return content.replace(/\n/g, '<br>');
     }
 
@@ -132,7 +139,12 @@
 </script>
 
 {#if showNewsEditModal}
-    <EditNewsModal title={newsTitle} description={newsDescription} onEditNews={(title, description) => updateNews(newsId, title, description)} onCloseModal={closeEditNewsModal}/>
+    <EditNewsModal
+        title={newsTitle}
+        description={newsDescription}
+        onEditNews={(title, description) => updateNews(newsId, title, description)}
+        onCloseModal={closeEditNewsModal}
+    />
 {/if}
 <Toaster />
 {#if loading}
@@ -175,6 +187,11 @@
 {/if}
 
 <style>
+    .news-item p {
+        text-align: left;
+        margin-left: 30px;
+        margin-top: 30px;
+    }
     .edit-pen {
         position: absolute;
         left: 0px;

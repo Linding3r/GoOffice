@@ -60,10 +60,10 @@
     }
 
     .input-group textarea {
-        height: 150px;
+        height: 200px;
         width: 100%;
         resize: vertical;
-        min-width: 550px;
+        min-width: 650px;
     }
 
     .input-group label {
