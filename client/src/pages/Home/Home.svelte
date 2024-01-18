@@ -5,20 +5,20 @@
     import toast, { Toaster } from 'svelte-french-toast';
     import EditNewsModal from '../../component/EditNewsModal/EditNewsModal.svelte';
     import { SyncLoader } from 'svelte-loading-spinners';
-    import FaPenSquare from 'svelte-icons/fa/FaPenSquare.svelte'
+    import FaPenSquare from 'svelte-icons/fa/FaPenSquare.svelte';
 
     let newsItems = [];
     const socket = io();
-    let loading = true
-    const pageTitle = 'Go Office | Home'
+    let loading = true;
+    const pageTitle = 'Go Office | Home';
 
     let currentPage = 1;
     const itemsPerPage = 3;
 
     let showNewsEditModal = false;
-    let newsTitle = "";
-    let newsDescription = "";
-    let newsId = "";
+    let newsTitle = '';
+    let newsDescription = '';
+    let newsId = '';
 
     $: paginatedNewsItems = newsItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -54,12 +54,12 @@
     async function updateNews(newsId, title, description) {
         try {
             const response = await fetch(`/api/news/${newsId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ title, description }) 
-        });
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, description }),
+            });
             if (response.ok) {
                 fetchInitialNews();
                 closeEditNewsModal();
@@ -73,15 +73,18 @@
         }
     }
 
-    async function deleteNews(newsId){
+    async function deleteNews(newsId) {
         try {
             const response = await fetch(`/api/news/${newsId}`, {
-                method: 'POST',
+                method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-        } catch (error){
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.ok) {
+                toast.success('News successfully delted');
+            }
+        } catch (error) {
             toast.error('An error occured while deleting news: ' + error.message);
         }
     }
@@ -114,11 +117,11 @@
         }
     }
 
-    function closeEditNewsModal(){
+    function closeEditNewsModal() {
         showNewsEditModal = false;
     }
 
-    function openEditNewsModal(id, title, description){
+    function openEditNewsModal(id, title, description) {
         showNewsEditModal = true;
         newsId = id;
         newsTitle = title;
@@ -146,7 +149,8 @@
                     aria-pressed="false"
                 >
                     {#if $user.isAdmin === 1}
-                        <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}></button>
+                        <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}>Edit</button>
+                        <button class="delete" on:click={() => deleteNews(newsItem.id)}>Delete</button>
                     {/if}
                     {#if newsItem.has_read === 0}
                         <span class="badge">!</span>
@@ -174,7 +178,16 @@
         left: 0px;
         top: 0px;
         height: 20;
-        color: 'transparent';
+        background-color: #535bf2;
+        font-size: x-small;
+    }
+    .delete {
+        position: absolute;
+        left: 50px;
+        top: 0px;
+        height: 20;
+        background-color: #ff6b6b;
+        font-size: x-small;
     }
 
     .badge {
