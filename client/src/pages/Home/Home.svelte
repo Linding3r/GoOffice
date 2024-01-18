@@ -148,7 +148,7 @@
 {/if}
 <Toaster />
 {#if loading}
-    <SyncLoader size="100" color="#535bf2" unit="px" />
+    <SyncLoader size="100" color="#1b1c23" unit="px" />
 {:else}
     <section>
         <h2>Latest News</h2>

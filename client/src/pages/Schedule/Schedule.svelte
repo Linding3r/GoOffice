@@ -293,7 +293,7 @@
 {/if}
 
 {#if loading}
-    <SyncLoader size="100" color="#535bf2" unit="px" />
+    <SyncLoader size="100" color="#1b1c23" unit="px" />
 {:else}
     <div class="booking-container">
         <h1>Desk Bookings</h1>

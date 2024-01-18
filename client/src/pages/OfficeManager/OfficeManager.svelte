@@ -6,7 +6,7 @@
     let selectedWeek = '';
     let workforceData = [];
     let loading = true;
-    const pageTitle = 'Go Office | Office Manager'
+    const pageTitle = 'Go Office | Office Manager';
 
     function getWeekOptions() {
         const currentWeek = getWeekNumber(new Date().toISOString().split('T')[0]);
@@ -87,20 +87,29 @@
         </div>
         <div class="workforce-container">
             {#each workforceData as dayData}
-                <div class="day-row">
-                    <div class="date">{formatDate(dayData.bookingDate)}</div>
-                    {#if dayData.status === 'Office Closed'}
-                        <div class="amount">{dayData.status}</div>
-                    {:else}
-                        <div class="amount">{dayData.status} at office</div>
-                    {/if}
-                </div>
-            {/each}
+            <div class="day-row">
+                <div class="date">{formatDate(dayData.bookingDate)}</div>
+                {#if dayData.status === 'Office Closed'}
+                    <div class="amount">{dayData.status}</div>
+                {:else}
+                    <div class="amount">{dayData.status} at office</div>
+                    <div class="diet-info">
+                        V: {dayData.vegetarianCount}
+                        VG: {dayData.veganCount}
+                    </div>
+                {/if}
+            </div>
+        {/each}
         </div>
     </div>
 {/if}
 
 <style>
+    .diet-info {
+        color: #555;
+        font-size: 0.9em;
+    }
+
     .container {
         max-width: calc(100vw - 150px);
         background-color: #fff;

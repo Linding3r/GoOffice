@@ -3,30 +3,98 @@
     import io from 'socket.io-client';
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
+    import { formatDate } from '../../assets/fromatDate';
 
+    let today = new Date().toISOString().split('T')[0];
     let updateItems = [];
     const socket = io();
-    let showOfficeDays = false;
     let showUserUpdates = false;
     let showVacation = false;
     let showUserSettings = false;
     let isVegan = false;
     let isVegetarian = false;
-    let dietries = '';
-    let customHomeDays = false;
-    let workHomeDays = [];
-    const pageTitle = 'Go Office | Profile'
+    let vacationStart = today;
+    let vacationEnd = '';
+    let userVacations = [];
+
+    const pageTitle = 'Go Office | Profile';
 
     onMount(() => {
         if ($user) {
             document.title = pageTitle;
             fetchInitialUpdates();
+            fetchUserVacations();
             socket.on('updateNotification', fetchInitialUpdates);
         }
         return () => {
             socket.disconnect();
         };
     });
+
+    async function fetchUserVacations() {
+        try {
+            const response = await fetch(`/api/users/vacations`);
+            if (response.ok) {
+                let vacation = await response.json();
+                if(vacation.length > 0){
+                    userVacations = vacation
+                }
+            } else {
+                toast.error('Failed to fetch vacation data');
+            }
+        } catch (error) {
+            toast.error('Error fetching vacation data: ' + error.message);
+        }
+    }
+
+    async function addVacation() {
+        if (!vacationStart || !vacationEnd) {
+            toast.error('Please fill all fields.');
+            return;
+        }
+        try {
+            const response = await fetch('/api/users/vacation-plans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    start_date: vacationStart,
+                    end_date: vacationEnd,
+                }),
+            });
+
+            if (response.ok) {
+                toast.success('Vacation added successfully');
+                vacationStart = today;
+                vacationEnd = '';
+                fetchUserVacations();
+            } else {
+                toast.error('Error adding vacation');
+            }
+        } catch (error) {
+            toast.error('Error adding vacation: ', error);
+        }
+    }
+
+    async function updateDietaryPreferences() {
+        try {
+            const response = await fetch(`/api/users/dietary-preferences`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    isVegetarian,
+                    isVegan,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+            toast.success('Dietary preferences updated successfully');
+        } catch (error) {
+            toast.error('Error updating dietary preferences: ' + error.message);
+        }
+    }
 
     async function fetchInitialUpdates() {
         try {
@@ -63,6 +131,23 @@
         }
     }
 
+    async function deleteVacation(vacationId) {
+        try {
+            const response = await fetch(`/api/users/vacations/${vacationId}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                toast.success('Vacation deleted successfully');
+                userVacations = userVacations.filter(vacation => vacation.id !== vacationId);
+            } else {
+                toast.error('Failed to delete vacation');
+            }
+        } catch (error) {
+            toast.error('Error deleting vacation: ' + error.message);
+        }
+    }
+
     function handleKeyPress(event, updateId) {
         if (event.key === 'Enter' || event.key === ' ') {
             markAsRead(updateId);
@@ -70,9 +155,7 @@
     }
 
     function toggleSection(section) {
-        if (section === 'officeWorkDays') {
-            showOfficeDays = !showOfficeDays;
-        } else if (section === 'userUpdates') {
+        if (section === 'userUpdates') {
             showUserUpdates = !showUserUpdates;
         } else if (section === 'vacation') {
             showVacation = !showVacation;
@@ -128,76 +211,54 @@
             <h3>Dietary requirements</h3>
             <label>
                 Vegetarian
-                <input type="checkbox" bind:checked={isVegetarian} />
+                <input type="checkbox" bind:checked={isVegetarian} on:change={updateDietaryPreferences} />
             </label>
             <label>
                 Vegan
-                <input type="checkbox" bind:checked={isVegan} />
+                <input type="checkbox" bind:checked={isVegan} on:change={updateDietaryPreferences} />
             </label>
-            <label>
-                Other Diatries
-                <input type="text" bind:value={dietries} />
-            </label>
-        {/if}
-    </div>
-
-    <div class="admin-section">
-        <button class="section-title-button" on:click={() => toggleSection('officeWorkDays')}>
-            <h2 class="section-title">
-                Office Days
-                <span class="dropdown-arrow">{showOfficeDays ? '▲' : '▼'}</span>
-            </h2>
-        </button>
-        {#if showOfficeDays}
-            <label>
-                <input type="checkbox" bind:checked={customHomeDays} />
-                Add reacuring home work days.
-            </label>
-            {#if customHomeDays}
-                <div class="weekdayBox">
-                    <h4>Chose which days you wish to work from home.</h4>
-                        <label>
-                            <input type="checkbox" bind:checked={workHomeDays[0]} />
-                            Monday
-                        </label>
-                        <label>
-                            <input type="checkbox" bind:checked={workHomeDays[1]} />
-                            Tuesday
-                        </label>
-                        <label>
-                            <input type="checkbox" bind:checked={workHomeDays[2]} />
-                            Wednesday
-                        </label>
-                        <label>
-                            <input type="checkbox" bind:checked={workHomeDays[3]} />
-                            Thursday
-                        </label>
-                        <label>
-                            <input type="checkbox" bind:checked={workHomeDays[4]} />
-                            Friday
-                        </label>
-                </div>
-            {:else}
-                <p></p>
-            {/if}
         {/if}
     </div>
 
     <div class="admin-section">
         <button class="section-title-button" on:click={() => toggleSection('vacation')}>
             <h2 class="section-title">
-                Vacation & Days Off
+                Vacation
                 <span class="dropdown-arrow">{showVacation ? '▲' : '▼'}</span>
             </h2>
         </button>
         {#if showVacation}
-            <!--Mark vacation-->
-            <p>Vacation</p>
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="vacationStart">Start Date</label>
+                    <input type="date" id="vacationStart" bind:value={vacationStart} min={today} />
+                </div>
+                <div class="input-group">
+                    <label for="vacationEnd">End Date</label>
+                    <input type="date" id="vacationEnd" bind:value={vacationEnd} min={vacationStart} />
+                </div>
+
+                <button on:click={addVacation} class="add-button">Add Vacation</button>
+            </div>
+            {#each userVacations as vacation (vacation.id)}
+                <div class="vacation-item">
+                    <span>From: {formatDate(vacation.start_date)} To: {formatDate(vacation.end_date)}</span>
+                    <button class="delete-button" on:click={() => deleteVacation(vacation.id)}>Delete</button>
+                </div>
+            {/each}
         {/if}
     </div>
 </section>
 
 <style>
+    .vacation-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
     .badge {
         background-color: red;
         color: white;
@@ -278,6 +339,22 @@
         color: black;
     }
 
+    input[type='date'] {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+
+    input[type='date']:focus {
+        outline: none;
+        border-color: #535bf2;
+        box-shadow: 0 0 5px rgba(83, 91, 242, 0.5);
+    }
+
     .section-title-button:hover {
         background-color: #f2f2f2;
     }
@@ -316,7 +393,6 @@
         color: #bfc2c7;
         background-color: #1b1c23;
     }
-
 
     :global(body.dark-mode) .section-title-button:hover {
         background-color: #333;

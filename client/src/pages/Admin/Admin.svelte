@@ -3,6 +3,7 @@
     import { writable } from 'svelte/store';
     import toast, { Toaster } from 'svelte-french-toast';
     import { derived } from 'svelte/store';
+    import { formatDate } from '../../assets/fromatDate';
 
     const searchQuery = writable('');
     const users = writable([]);
@@ -133,11 +134,6 @@
         } catch (error) {
             toast.error('Error fetching closed days: ', error);
         }
-    }
-
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-GB');
     }
 
     async function deleteClosedDay(id) {
@@ -378,7 +374,7 @@
             <div class="logs-window-box">
                 {#each logs as log}
                     <div class="log-entry">
-                        {log.timestamp} - {log.response_time}ms - STATUS: {log.status} - {log.method} - PATH: {log.path} - USER_ID: {log.session_user_id} {#if log.body != ''}- BODY: {log.body}{/if}
+                        <span class="timestamp">{log.timestamp.split('.')[0].replace('T', '@')}</span> - {log.response_time}ms - STATUS: {log.status} - {log.method} - PATH: {log.path} - USER_ID: {log.session_user_id} {#if log.body != ''}- BODY: {log.body}{/if}
                     </div>
                 {/each}
             </div>
@@ -387,6 +383,11 @@
 </section>
 
 <style>
+    .timestamp{
+        color: blue;
+        font-weight: bold;
+    }
+
     .hours-selector {
         margin-bottom: 10px;
     }
