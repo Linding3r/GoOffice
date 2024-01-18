@@ -15,7 +15,7 @@
             <label for="description">Description</label>
             <textarea id="description" bind:value={description} placeholder="Description" rows="6"></textarea>
         </div>
-        <button class="add-button" on:click={() => onEditNews()}>Add News</button>
+        <button class="add-button" on:click={() => onEditNews()}>Edit News</button>
         </div>
 </div>
 
@@ -30,11 +30,13 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        z-index: 1;
     }
     .modal {
         background-color: #f9f9f9;
         padding: 20px;
         border-radius: 5px;
+        margin-left: 100px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     }
     button {
@@ -42,16 +44,12 @@
         background-color: #535bf2;
     }
 
-    .news-input-section {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
 
     .input-group textarea {
         height: 150px;
         width: 100%;
         resize: vertical;
+        min-width: 550px;
     }
 
     .input-group label {

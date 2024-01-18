@@ -1,12 +1,11 @@
 <script>
     import { onMount } from 'svelte';
     import io from 'socket.io-client';
-    import { BASE_URL } from '../../stores/global';
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
 
     let updateItems = [];
-    const socket = io($BASE_URL);
+    const socket = io();
     let showOfficeDays = false;
     let showUserUpdates = false;
     let showVacation = false;
@@ -31,7 +30,7 @@
 
     async function fetchInitialUpdates() {
         try {
-            const response = await fetch($BASE_URL + '/api/user-updates');
+            const response = await fetch('/api/user-updates');
             if (response.status === 204) {
                 updateItems = [];
                 return;
@@ -52,7 +51,7 @@
 
     async function markAsRead(updateId) {
         try {
-            const response = await fetch($BASE_URL + `/api/user-updates/read/${updateId}`, { method: 'POST' });
+            const response = await fetch(`/api/user-updates/read/${updateId}`, { method: 'POST' });
             if (response.ok) {
                 fetchInitialUpdates();
             } else {

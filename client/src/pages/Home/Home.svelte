@@ -1,24 +1,24 @@
 <script>
     import { onMount } from 'svelte';
     import io from 'socket.io-client';
-    import { BASE_URL } from '../../stores/global';
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
     import EditNewsModal from '../../component/EditNewsModal/EditNewsModal.svelte';
     import { SyncLoader } from 'svelte-loading-spinners';
+    import FaPenSquare from 'svelte-icons/fa/FaPenSquare.svelte'
 
     let newsItems = [];
-    const socket = io($BASE_URL);
+    const socket = io();
     let loading = true
     const pageTitle = 'Go Office | Home'
 
     let currentPage = 1;
     const itemsPerPage = 3;
 
-    // let showNewsEditModal = false;
-    // let newsTitle = "";
-    // let newsDescription = "";
-    // let newsId = "";
+    let showNewsEditModal = false;
+    let newsTitle = "";
+    let newsDescription = "";
+    let newsId = "";
 
     $: paginatedNewsItems = newsItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -51,19 +51,20 @@
         }
     }
 
-    // async function updateNews(newsId, newsTitle, newsDescription) {
-    //     try {
-    //         const response = await fetch(`/api/news/${newsId}`, { method: 'POST' });
-    //         if (response.ok) {
-    //             toast.success('News successfully updated');
-    //         } else {
-    //             const errorText = await response.text();
-    //             throw new Error(errorText || 'Server responded with an error');
-    //         }
-    //     } catch (error) {
-    //         toast.error('An error occured while updating news: ' + error.message);
-    //     }
-    // }
+    async function updateNews(newsId, newsTitle, newsDescription) {
+        try {
+            const response = await fetch(`/api/news/${newsId}`, { method: 'POST' });
+            if (response.ok) {
+                closeEditNewsModal();
+                toast.success('News successfully updated');
+            } else {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Server responded with an error');
+            }
+        } catch (error) {
+            toast.error('An error occured while updating news: ' + error.message);
+        }
+    }
 
     async function markNewsAsRead(newsId) {
         try {
@@ -93,18 +94,22 @@
         }
     }
 
-    // function openEditNewsModal(id, title, description){
-    //     showNewsEditModal = true;
-    //     newsId = id;
-    //     newsTitle = title;
-    //     newsDescription = description;
-    // }
+    function closeEditNewsModal(){
+        showNewsEditModal = false;
+    }
+
+    function openEditNewsModal(id, title, description){
+        showNewsEditModal = true;
+        newsId = id;
+        newsTitle = title;
+        newsDescription = description;
+    }
 </script>
 
 
-    <!-- {#if showNewsEditModal}
-     <EditNewsModal title={newsTitle} description={newsDescription} />
-    {/if} -->
+    {#if showNewsEditModal}
+     <EditNewsModal title={newsTitle} description={newsDescription} onEditNews={(title, description) => updateNews(newsId, title, description)}/>
+    {/if}
     <Toaster />
     {#if loading}
     <SyncLoader size="100" color="#535bf2" unit="px" />
@@ -121,9 +126,9 @@
                 role="button"
                 aria-pressed="false"
             >
-                <!-- {#if $user.isAdmin === 1}
-                <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}>Edit</button>
-                {/if} -->
+                {#if $user.isAdmin === 1}
+                <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}></button>
+                {/if}
                 {#if newsItem.has_read === 0}
                     <span class="badge">!</span>
                 {/if}
@@ -149,7 +154,8 @@
         position: absolute;
         left: 0px;
         top: 0px;
-        transform: translate(50%, -50%);
+        height: 20;
+        color: 'transparent';
     }
 
     .badge {

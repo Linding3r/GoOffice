@@ -1,6 +1,5 @@
 <script>
     import { onMount } from 'svelte';
-    import { BASE_URL } from '../../stores/global';
     import toast, { Toaster } from 'svelte-french-toast';
     import { user } from '../../stores/userStore';
     import io from 'socket.io-client';
@@ -9,7 +8,7 @@
     import FaBars from 'svelte-icons/fa/FaBars.svelte';
     import BookingModal from '../../component/BookingModal/BookingModal.svelte';
 
-    const socket = io($BASE_URL);
+    const socket = io('');
 
     let bookings = {};
     let userBookings = {};
@@ -53,7 +52,7 @@
 
     async function fetchBookings() {
         try {
-            const response = await fetch($BASE_URL + '/api/bookings/four-weeks');
+            const response = await fetch('/api/bookings/four-weeks');
             if (response.ok) {
                 bookings = await response.json();
                 preprocessBookings();
@@ -129,7 +128,7 @@
 
     async function bookShift(date, type) {
         try {
-            const response = await fetch($BASE_URL + '/api/bookings', {
+            const response = await fetch('/api/bookings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shift_date: date, shift_type: type }),
@@ -146,7 +145,7 @@
 
     async function cancelShift(bookingId) {
         try {
-            const response = await fetch($BASE_URL + '/api/bookings', {
+            const response = await fetch('/api/bookings', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ booking_id: bookingId }),
@@ -163,7 +162,7 @@
 
     async function fetchClosedDays() {
         try {
-            const response = await fetch($BASE_URL + '/api/closed-days');
+            const response = await fetch('/api/closed-days');
 
             const data = await response.json();
             closedDays = data.map(period => ({
@@ -181,7 +180,7 @@
 
     async function fetchWaitlist(date) {
         try {
-            const response = await fetch(`${$BASE_URL}/api/waitlist/${date}`);
+            const response = await fetch(`/api/waitlist/${date}`);
             if (!response.ok) {
                 throw new Error('Error fetching waitlist');
             }
@@ -239,7 +238,7 @@
 
     async function cancelWaitlist(id) {
         try {
-            const response = await fetch(`${$BASE_URL}/api/waitlist`, {
+            const response = await fetch(`/api/waitlist`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ waitlist_id: id }),
@@ -256,7 +255,7 @@
 
     async function joinWaitlist(date, shiftType) {
         try {
-            const response = await fetch(`${$BASE_URL}/api/waitlist`, {
+            const response = await fetch(`/api/waitlist`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shift_date: date, shift_type: shiftType, user_id: currentUser.user_id }),

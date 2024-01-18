@@ -3,7 +3,6 @@
     import { writable } from 'svelte/store';
     import toast, { Toaster } from 'svelte-french-toast';
     import { derived } from 'svelte/store';
-    import { BASE_URL } from '../../stores/global.js';
 
     const searchQuery = writable('');
     const users = writable([]);
@@ -379,7 +378,7 @@
             <div class="logs-window-box">
                 {#each logs as log}
                     <div class="log-entry">
-                        {log.timestamp} - {log.response_time}ms - STATUS: {log.status} - {log.method} -PATH: {log.path} - USER_ID: {log.session_user_id} - BODY: {log.body}
+                        {log.timestamp} - {log.response_time}ms - STATUS: {log.status} - {log.method} - PATH: {log.path} - USER_ID: {log.session_user_id} - BODY: {log.body}
                     </div>
                 {/each}
             </div>
