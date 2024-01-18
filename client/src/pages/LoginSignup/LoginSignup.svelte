@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import { navigate } from 'svelte-navigator';
     import { user } from '../../stores/userStore.js';
-    import { checkAuthStatus } from '../../component/Authentication/authentication.js';
+    import { checkAuthStatus } from '../../util/authentication.js';
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
     import { Link } from 'svelte-navigator';
 

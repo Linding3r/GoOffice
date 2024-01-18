@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import db from '../database/connection.js';
-import { io } from '../app.js';
 import { isAuthenticated, isAdmin } from '../util/checkAuth.js';
 
 const router = Router();
@@ -14,7 +13,7 @@ router.get('/api/users/get-all', isAuthenticated, isAdmin, async (req, res) => {
             res.status(200).json({ message: 'No users to be found' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching all users' });
+        res.status(500).json({ error: 'Error fetching all users' });
     }
 });
 
@@ -24,7 +23,7 @@ router.get('/api/users/vacations', isAuthenticated, async (req, res) => {
         const [vacations] = await db.promise().query('SELECT * FROM vacation_plans WHERE user_id = ?', [userId]);
         res.status(200).json(vacations);
     } catch (err) {
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({error: 'Internal Server Error'});
     }
 });
 
@@ -52,7 +51,7 @@ router.put('/api/users', isAuthenticated, isAdmin, async (req, res) => {
             ]);
         res.status(200).json({ message: 'User has been updated' });
     } catch (error) {
-        res.status(500).json({ message: 'Error updating the user' });
+        res.status(500).json({ error: 'Error updating the user' });
     }
 });
 
@@ -61,7 +60,6 @@ router.put('/api/users/dietary-preferences', isAuthenticated, async (req, res) =
         const { isVegetarian, isVegan } = req.body;
         const userId = req.session.user.user_id;
         await db.promise().execute(`UPDATE users SET is_vegetarian = ?, is_vegan = ? WHERE id = ?`, [isVegetarian, isVegan, userId]);
-
         res.status(200).json({ message: 'Dietary preferences updated successfully' });
     } catch (err) {
         res.status(500).json({ error: 'Internal Server Error' });

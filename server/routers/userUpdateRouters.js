@@ -16,22 +16,18 @@ router.get('/api/user-updates', isAuthenticated, async (req, res) => {
             res.status(204).send({ message: 'No Updates for given user' });
         }
     } catch (err) {
-        res.status(500).send('Internal Server Error');
+        res.status(500).send('Internal Server Error:', err);
     }
 });
 
 router.put('/api/user-updates/read/:id', isAuthenticated, async (req, res) => {
     const updateId = req.params.id;
     try {
-        const [result] = await db.promise().query(`UPDATE user_updates SET has_read = 1 WHERE id = ?`, [updateId]);
-        if (result.affectedRows > 0) {
-            res.status(200).send({ message: 'Update marked as read' });
-            io.emit('updateNotification')
-        } else {
-            res.status(204).send({ message: 'No updates with given id' });
-        }
-    } catch {
-        res.status(500).send('Internal Server Error');
+        await db.promise().query(`UPDATE user_updates SET has_read = 1 WHERE id = ?`, [updateId]);
+        res.status(200).send({ message: 'Update marked as read' });
+        io.emit('updateNotification');
+    } catch (err){
+        res.status(500).send('Internal Server Error: ', err);
     }
 });
 export default router;

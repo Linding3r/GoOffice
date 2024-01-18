@@ -3,7 +3,7 @@
     import io from 'socket.io-client';
     import { user } from '../../stores/userStore';
     import toast, { Toaster } from 'svelte-french-toast';
-    import { formatDate } from '../../assets/fromatDate';
+    import { formatDate } from '../../util/fromatDate';
 
     let today = new Date().toISOString().split('T')[0];
     let updateItems = [];

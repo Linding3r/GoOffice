@@ -11,7 +11,7 @@
     import { user } from './stores/userStore.js';
     import LostPassword from './pages/LostPassword/LostPassword.svelte';
     import NoPermission from './pages/NoPermission/NoPermission.svelte';
-    import { checkAuthStatus } from './component/Authentication/authentication.js';
+    import { checkAuthStatus } from './util/authentication.js';
     import DarkmodeSwitch from './component/Darkmode/DarkmodeSwitch.svelte';
     import FaCalendarCheck from 'svelte-icons/fa/FaCalendarCheck.svelte';
     import FaHome from 'svelte-icons/fa/FaHome.svelte';

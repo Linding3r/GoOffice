@@ -1,4 +1,4 @@
-import { user } from '../../stores/userStore.js';
+import { user } from '../stores/userStore.js';
 
 
 export async function checkAuthStatus() {

@@ -39,7 +39,7 @@ router.get('/api/news/get-unread-number', isAuthenticated, async (req, res) => {
         if (number[0].unread_news_count > 0) {
             res.status(200).json({ number: number[0].unread_news_count });
         } else {
-            res.status(204).json({ message: 'No unread news'})
+            res.status(204).json({ message: 'No unread news' });
         }
     } catch (error) {
         res.status(500).json({ message: 'Error fetching unread news number' });
@@ -55,7 +55,7 @@ router.post('/api/news/read/:newsId', isAuthenticated, async (req, res) => {
         INSERT INTO users_news_read (news_id, user_id, has_read) VALUES (?, ?, 1);
     `;
         await db.promise().query(updateQuery, [newsId, userId]);
-        io.emit('newsNotification')
+        io.emit('newsNotification');
         res.status(200).json({ message: 'News marked as read' });
     } catch (error) {
         res.status(500).json({ message: 'Error updating read status' });
@@ -65,14 +65,10 @@ router.post('/api/news/read/:newsId', isAuthenticated, async (req, res) => {
 router.post('/api/news', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const { title, description } = req.body;
-
-        const [result] = await db.promise().query('INSERT INTO news (title, description) VALUES (?, ?)', [title, description]);
-
-        if (result) {
-            res.status(200).json({ message: 'News added successfully' });
-            io.emit('newsUpdate');
-            io.emit('newsNotification')
-        }
+        await db.promise().query('INSERT INTO news (title, description) VALUES (?, ?)', [title, description]);
+        res.status(200).json({ message: 'News added successfully' });
+        io.emit('newsUpdate');
+        io.emit('newsNotification');
     } catch (error) {
         res.status(500).json({ message: 'Error adding news' });
     }
@@ -83,34 +79,25 @@ router.put('/api/news/:id', isAuthenticated, isAdmin, async (req, res) => {
         const newsID = req.params.id;
         const { title, description } = req.body;
         const editedTime = new Date();
-
-        const [result] = await db.promise().query('UPDATE news SET title=?,description=?, edited=? WHERE id=?', [title, description, editedTime ,newsID]);
+        await db.promise().query('UPDATE news SET title=?,description=?, edited=? WHERE id=?', [title, description, editedTime, newsID]);
         await db.promise().query('DELETE FROM users_news_read WHERE news_id = ?', [newsID]);
-        if(result){
-            res.status(200).json({ message: "News successfully updated"});
-            io.emit('newsNotification')
-            io.emit('newsUpdate');
-        }
-
+        res.status(200).json({ message: 'News successfully updated' });
+        io.emit('newsNotification');
+        io.emit('newsUpdate');
     } catch (error) {
-        res.status(500).json({ message: 'Error updating news'});
+        res.status(500).json({ message: 'Error updating news' });
     }
-})
-
+});
 
 router.delete('/api/news/:id', isAuthenticated, isAdmin, async (req, res) => {
     try {
         const newsID = req.params.id;
-
-        const [userResult] = await db.promise().query('DELETE FROM users_news_read WHERE news_id = ?', [newsID]);
-        const [newsResult] = await db.promise().query('DELETE FROM news WHERE id=?', [newsID]);
-        if(userResult && newsResult){
-            res.status(200).json({ message: "News successfully deleted"});
-            io.emit('newsUpdate');
-        }
-
+        await db.promise().query('DELETE FROM users_news_read WHERE news_id = ?', [newsID]);
+        await db.promise().query('DELETE FROM news WHERE id=?', [newsID]);
+        res.status(200).json({ message: 'News successfully deleted' });
+        io.emit('newsUpdate');
     } catch (error) {
-        res.status(500).json({ message: 'Error updating news'});
+        res.status(500).json({ message: 'Error updating news' });
     }
-})
+});
 export default router;

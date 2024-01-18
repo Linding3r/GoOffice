@@ -1,13 +1,10 @@
 import { Router } from 'express';
 import { passwordHasher } from '../util/passwordencryption.js';
 import db from '../database/connection.js';
+import { doesEmailExist } from '../util/checkEmail.js';
 
 const router = Router();
 
-async function doesEmailExist(email) {
-    const [results] = await db.promise().query(`SELECT * FROM users WHERE email = ?;`, [email]);
-    return results.length > 0;
-}
 
 router.post('/api/auth/signup', async (req, res) => {
     const { email, password, name } = req.body;

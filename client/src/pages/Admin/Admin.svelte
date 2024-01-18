@@ -3,7 +3,7 @@
     import { writable } from 'svelte/store';
     import toast, { Toaster } from 'svelte-french-toast';
     import { derived } from 'svelte/store';
-    import { formatDate } from '../../assets/fromatDate';
+    import { formatDate } from '../../util/fromatDate';
 
     const searchQuery = writable('');
     const users = writable([]);
@@ -147,7 +147,7 @@
 
             if (response.ok) {
                 toast.success('Closed day removed successfully');
-                closedDays = closedDays.filter(day => day.id !== id);
+                fetchClosedDays();
             } else {
                 const errorData = await response.json();
                 toast.error('Failed to remove closed day: ' + errorData.message);
