@@ -7,7 +7,7 @@ const router = Router();
 
 router.get('/api/users/get-all', isAuthenticated, isAdmin, async (req, res) => {
     try {
-        const [users] = await db.promise().query('SELECT id, name, is_admin, is_fulltime, department_id, email FROM users;');
+        const [users] = await db.promise().query('SELECT id, name, is_admin, is_fulltime, department_id, email FROM users ORDER BY name;');
         if (users.length > 0) {
             res.json({ users });
         } else {
@@ -18,7 +18,7 @@ router.get('/api/users/get-all', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
-router.get('/api/users/vacations', /*isAuthenticated,*/ async (req, res) => {
+router.get('/api/users/vacations', isAuthenticated, async (req, res) => {
     try {
         const userId = req.session.user.user_id;
         const [vacations] = await db.promise().query('SELECT * FROM vacation_plans WHERE user_id = ?', [userId]);

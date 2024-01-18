@@ -412,6 +412,8 @@
     }
     .users-list {
         margin-top: 20px;
+        overflow-y: auto;
+        height: 500px;
     }
     .user-item {
         display: flex;
