@@ -18,7 +18,7 @@
     import FaUserCog from 'svelte-icons/fa/FaUserCog.svelte'
     import FaCoffee from 'svelte-icons/fa/FaCoffee.svelte';
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte';
-    import { BASE_URL } from './stores/global.js';
+    import { COOKIEBOT_ID } from './stores/global.js';
     import { SyncLoader } from 'svelte-loading-spinners';
     import OfficeManager from './pages/OfficeManager/OfficeManager.svelte';
     import Badge from './component/Badge/Badge.svelte';
@@ -26,7 +26,7 @@
     import Profile from './pages/Profile/Profile.svelte';
     import io from 'socket.io-client';
 
-    const socket = io($BASE_URL);
+    const socket = io();
     let isLoading = true;
     let isAuthenticated = false;
     let userUpdateNumber = 0;
@@ -35,7 +35,7 @@
 
     async function logout() {
         try {
-            const response = await fetch($BASE_URL + '/api/auth/logout', {
+            const response = await fetch('/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include',
             });
@@ -54,7 +54,7 @@
 
     async function fetchUserUpdateNumber() {
         try {
-            const response = await fetch($BASE_URL + '/api/user-updates');
+            const response = await fetch('/api/user-updates');
             if (response.status === 204) {
                 userUpdateNumber = 0;
                 return;
@@ -70,7 +70,7 @@
 
     async function fetchUserNewsNumber() {
         try {
-            const response = await fetch($BASE_URL + '/api/news/get-unread-number');
+            const response = await fetch('/api/news/get-unread-number');
             if (response.status === 204) {
                 userNewsNumber = 0;
                 return;
@@ -101,7 +101,7 @@
         const cookiebotScript = document.createElement('script');
         cookiebotScript.id = 'Cookiebot';
         cookiebotScript.src = 'https://consent.cookiebot.com/uc.js';
-        cookiebotScript.setAttribute('data-cbid', '7eb6cb2a-4d99-4ff9-9f64-77ad42c4e290');
+        cookiebotScript.setAttribute('data-cbid', $COOKIEBOT_ID);
         cookiebotScript.type = 'text/javascript';
         cookiebotScript.async = true;
 

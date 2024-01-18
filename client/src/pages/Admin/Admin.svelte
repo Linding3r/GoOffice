@@ -378,7 +378,7 @@
             <div class="logs-window-box">
                 {#each logs as log}
                     <div class="log-entry">
-                        {log.timestamp} - {log.response_time}ms - STATUS: {log.status} - {log.method} - PATH: {log.path} - USER_ID: {log.session_user_id} - BODY: {log.body}
+                        {log.timestamp} - {log.response_time}ms - STATUS: {log.status} - {log.method} - PATH: {log.path} - USER_ID: {log.session_user_id} {#if log.body != ''}- BODY: {log.body}{/if}
                     </div>
                 {/each}
             </div>

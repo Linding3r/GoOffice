@@ -5,7 +5,6 @@
     import toast, { Toaster } from 'svelte-french-toast';
     import EditNewsModal from '../../component/EditNewsModal/EditNewsModal.svelte';
     import { SyncLoader } from 'svelte-loading-spinners';
-    import FaPenSquare from 'svelte-icons/fa/FaPenSquare.svelte';
 
     let newsItems = [];
     const socket = io();
@@ -61,8 +60,8 @@
                 body: JSON.stringify({ title, description }),
             });
             if (response.ok) {
-                fetchInitialNews();
                 closeEditNewsModal();
+                fetchInitialNews();
                 toast.success('News successfully updated');
             } else {
                 const errorText = await response.text();
@@ -118,6 +117,9 @@
     }
 
     function closeEditNewsModal() {
+        newsId = '';
+        newsTitle = '';
+        newsDescription = '';
         showNewsEditModal = false;
     }
 
@@ -130,7 +132,7 @@
 </script>
 
 {#if showNewsEditModal}
-    <EditNewsModal title={newsTitle} description={newsDescription} onEditNews={(title, description) => updateNews(newsId, title, description)} />
+    <EditNewsModal title={newsTitle} description={newsDescription} onEditNews={(title, description) => updateNews(newsId, title, description)} onCloseModal={closeEditNewsModal}/>
 {/if}
 <Toaster />
 {#if loading}

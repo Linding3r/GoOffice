@@ -6,7 +6,6 @@
     import { checkAuthStatus } from '../../component/Authentication/authentication.js';
     import DarkmodeSwitch from '../../component/Darkmode/DarkmodeSwitch.svelte';
     import { Link } from 'svelte-navigator';
-    import { BASE_URL } from '../../stores/global.js';
 
     let rightPanelActive = false;
     const pageTitle = 'Go Office'
@@ -24,7 +23,7 @@
 
     async function login() {
         toast.promise(
-            fetch($BASE_URL + '/api/auth/login', {
+            fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: loginEmail, password: loginPassword }),
@@ -66,7 +65,7 @@
         }
 
         toast.promise(
-            fetch($BASE_URL + '/api/auth/signup', {
+            fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: signupEmail, password: signupPassword, name: name }),
