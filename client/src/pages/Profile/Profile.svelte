@@ -16,12 +16,14 @@
     let vacationStart = today;
     let vacationEnd = '';
     let userVacations = [];
+    let isFulltime = false
 
     const pageTitle = 'Go Office | Profile';
 
     onMount(() => {
         if ($user) {
             document.title = pageTitle;
+            isFulltime = $user.isFulltime;
             fetchInitialUpdates();
             fetchUserVacations();
             socket.on('updateNotification', fetchInitialUpdates);
@@ -219,7 +221,7 @@
             </label>
         {/if}
     </div>
-
+{#if isFulltime}
     <div class="admin-section">
         <button class="section-title-button" on:click={() => toggleSection('vacation')}>
             <h2 class="section-title">
@@ -248,6 +250,7 @@
             {/each}
         {/if}
     </div>
+    {/if}
 </section>
 
 <style>

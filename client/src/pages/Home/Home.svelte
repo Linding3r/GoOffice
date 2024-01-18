@@ -18,13 +18,15 @@
     let newsTitle = '';
     let newsDescription = '';
     let newsId = '';
+    let isAdmin = false;
 
     $: paginatedNewsItems = newsItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     onMount(() => {
         if ($user) {
+            isAdmin = $user.isAdmin
             document.title = pageTitle;
-            fetchInitialNews();
+            setTimeout(fetchInitialNews, 100);
             socket.on('newsUpdate', fetchInitialNews);
         }
         return () => {
@@ -162,7 +164,7 @@
                     role="button"
                     aria-pressed="false"
                 >
-                    {#if $user.isAdmin === 1}
+                    {#if isAdmin}
                         <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}>Edit</button>
                         <button class="delete" on:click={() => deleteNews(newsItem.id)}>Delete</button>
                     {/if}
