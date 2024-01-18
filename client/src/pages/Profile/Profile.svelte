@@ -51,7 +51,7 @@
 
     async function markAsRead(updateId) {
         try {
-            const response = await fetch(`/api/user-updates/read/${updateId}`, { method: 'POST' });
+            const response = await fetch(`/api/user-updates/read/${updateId}`, { method: 'PUT' });
             if (response.ok) {
                 fetchInitialUpdates();
             } else {

@@ -15,7 +15,7 @@ router.get('/api/departments', isAuthenticated, isAdmin, async (req, res) => {
     }
 });
 
-router.post('/api/departments/update/:id', isAuthenticated, isAdmin, async (req, res) => {
+router.put('/api/departments/:id', isAuthenticated, isAdmin, async (req, res) => {
     const desksNumber = req.body.value;
     const departmentId = parseInt(req.params.id);
     try {

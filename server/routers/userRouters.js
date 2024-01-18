@@ -26,7 +26,7 @@ router.get('/api/users/user', isAuthenticated, async (req, res) => {
     }
 })
 
-router.post('/api/users/update-user', isAuthenticated, isAdmin, async (req, res) => {
+router.put('/api/users', isAuthenticated, isAdmin, async (req, res) => {
     const userReq = req.body.user;
     try{
         await db.promise().query(`UPDATE users SET is_fulltime=?, is_admin=?, department_id=? WHERE id=?`, [userReq.is_fulltime, userReq.is_admin, userReq.department_id, userReq.id]);

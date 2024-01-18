@@ -20,7 +20,7 @@ router.get('/api/user-updates', isAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/api/user-updates/read/:id', isAuthenticated, async (req, res) => {
+router.put('/api/user-updates/read/:id', isAuthenticated, async (req, res) => {
     const updateId = req.params.id;
     try {
         const [result] = await db.promise().query(`UPDATE user_updates SET has_read = 1 WHERE id = ?`, [updateId]);

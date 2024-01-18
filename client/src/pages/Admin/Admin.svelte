@@ -42,8 +42,8 @@
     async function handleDepartmentUpdate(id) {
         let value = inputRef.value;
         try {
-            const response = await fetch(`/api/departments/update/${id}`, {
-                method: 'POST',
+            const response = await fetch(`/api/departments/${id}`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ value }),
             });
@@ -80,8 +80,8 @@
     }
 
     async function updateUser(user) {
-        const response = await fetch('/api/users/update-user', {
-            method: 'POST',
+        const response = await fetch('/api/users', {
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user }),
         });

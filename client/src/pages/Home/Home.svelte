@@ -51,10 +51,17 @@
         }
     }
 
-    async function updateNews(newsId, newsTitle, newsDescription) {
+    async function updateNews(newsId, title, description) {
         try {
-            const response = await fetch(`/api/news/${newsId}`, { method: 'POST' });
+            const response = await fetch(`/api/news/${newsId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, description }) 
+        });
             if (response.ok) {
+                fetchInitialNews();
                 closeEditNewsModal();
                 toast.success('News successfully updated');
             } else {
@@ -63,6 +70,19 @@
             }
         } catch (error) {
             toast.error('An error occured while updating news: ' + error.message);
+        }
+    }
+
+    async function deleteNews(newsId){
+        try {
+            const response = await fetch(`/api/news/${newsId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        } catch (error){
+            toast.error('An error occured while deleting news: ' + error.message);
         }
     }
 
@@ -106,51 +126,50 @@
     }
 </script>
 
-
-    {#if showNewsEditModal}
-     <EditNewsModal title={newsTitle} description={newsDescription} onEditNews={(title, description) => updateNews(newsId, title, description)}/>
-    {/if}
-    <Toaster />
-    {#if loading}
+{#if showNewsEditModal}
+    <EditNewsModal title={newsTitle} description={newsDescription} onEditNews={(title, description) => updateNews(newsId, title, description)} />
+{/if}
+<Toaster />
+{#if loading}
     <SyncLoader size="100" color="#535bf2" unit="px" />
-    {:else}
+{:else}
     <section>
-    <h2>Latest News</h2>
-    <div class="news-container">
-        {#each paginatedNewsItems as newsItem (newsItem.id)}
-            <div
-                class="news-item"
-                tabindex="0"
-                on:click={() => markNewsAsRead(newsItem.id)}
-                on:keydown={event => handleKeyPress(event, newsItem.id)}
-                role="button"
-                aria-pressed="false"
-            >
-                {#if $user.isAdmin === 1}
-                <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}></button>
-                {/if}
-                {#if newsItem.has_read === 0}
-                    <span class="badge">!</span>
-                {/if}
-                <h3>{newsItem.title}</h3>
-                <p>{@html formatNewsContent(newsItem.description)}</p>
-                {#if newsItem.edited == null}
-                    <small>{new Date(newsItem.time).toLocaleString()}</small>
-                {:else}
-                    <small>edited - {new Date(newsItem.edited).toLocaleString()}</small>
-                {/if}
-            </div>
-        {/each}
-    </div>
-    <div class="pagination-controls">
-        <button on:click={() => (currentPage = Math.max(1, currentPage - 1))} disabled={currentPage === 1}>Previous</button>
-        <button on:click={() => (currentPage = Math.min(getTotalPages(), currentPage + 1))} disabled={currentPage === getTotalPages()}>Next</button>
-    </div>
-</section>
+        <h2>Latest News</h2>
+        <div class="news-container">
+            {#each paginatedNewsItems as newsItem (newsItem.id)}
+                <div
+                    class="news-item"
+                    tabindex="0"
+                    on:click={() => markNewsAsRead(newsItem.id)}
+                    on:keydown={event => handleKeyPress(event, newsItem.id)}
+                    role="button"
+                    aria-pressed="false"
+                >
+                    {#if $user.isAdmin === 1}
+                        <button class="edit-pen" on:click={() => openEditNewsModal(newsItem.id, newsItem.title, newsItem.description)}></button>
+                    {/if}
+                    {#if newsItem.has_read === 0}
+                        <span class="badge">!</span>
+                    {/if}
+                    <h3>{newsItem.title}</h3>
+                    <p>{@html formatNewsContent(newsItem.description)}</p>
+                    {#if newsItem.edited == null}
+                        <small>{new Date(newsItem.time).toLocaleString()}</small>
+                    {:else}
+                        <small>edited - {new Date(newsItem.edited).toLocaleString()}</small>
+                    {/if}
+                </div>
+            {/each}
+        </div>
+        <div class="pagination-controls">
+            <button on:click={() => (currentPage = Math.max(1, currentPage - 1))} disabled={currentPage === 1}>Previous</button>
+            <button on:click={() => (currentPage = Math.min(getTotalPages(), currentPage + 1))} disabled={currentPage === getTotalPages()}>Next</button>
+        </div>
+    </section>
 {/if}
 
 <style>
-    .edit-pen{
+    .edit-pen {
         position: absolute;
         left: 0px;
         top: 0px;

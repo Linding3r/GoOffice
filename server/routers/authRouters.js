@@ -12,7 +12,7 @@ router.get('/api/checkAuth', (req, res) => {
     }
 });
 
-router.post('/api/auth/reset-password', async (req, res) => {
+router.put('/api/auth/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
   const currentTime = Date.now();
   try {

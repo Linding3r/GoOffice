@@ -15,7 +15,8 @@
             <label for="description">Description</label>
             <textarea id="description" bind:value={description} placeholder="Description" rows="6"></textarea>
         </div>
-        <button class="add-button" on:click={() => onEditNews()}>Edit News</button>
+        <button class="add-button" on:click={() => onEditNews(title, description)}>Edit News</button>
+
         </div>
 </div>
 
