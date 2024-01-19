@@ -24,7 +24,7 @@
 
     onMount(() => {
         if ($user) {
-            isAdmin = $user.isAdmin
+            isAdmin = $user.isAdmin;
             document.title = pageTitle;
             setTimeout(fetchInitialNews, 100);
             socket.on('newsUpdate', fetchInitialNews);
@@ -37,16 +37,12 @@
     async function fetchInitialNews() {
         try {
             const response = await fetch('/api/news/get-all');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.news) {
-                    loading = false;
-                    newsItems = data.news;
-                }
-            } else {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Server responded with an error');
+            if (!response.ok) {
+                throw new Error('Server responded with an error');
             }
+            const data = await response.json();
+            newsItems = data.news || [];
+            loading = false;
         } catch (error) {
             toast.error('An error occurred while fetching news: ' + error.message);
         }
@@ -61,16 +57,14 @@
                 },
                 body: JSON.stringify({ title, description }),
             });
-            if (response.ok) {
-                closeEditNewsModal();
-                fetchInitialNews();
-                toast.success('News successfully updated');
-            } else {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Server responded with an error');
+            if (!response.ok) {
+                throw new Error('Server responded with an error');
             }
+            closeEditNewsModal();
+            fetchInitialNews();
+            toast.success('News successfully updated');
         } catch (error) {
-            toast.error('An error occured while updating news: ' + error.message);
+            toast.error('An error occurred while updating news: ' + error.message);
         }
     }
 
@@ -82,27 +76,29 @@
                     'Content-Type': 'application/json',
                 },
             });
-            if (response.ok) {
-                toast.success('News successfully deleted');
+            if (!response.ok) {
+                throw new Error('Server responded with an error');
             }
+            toast.success('News successfully deleted');
         } catch (error) {
             toast.error('An error occured while deleting news: ' + error.message);
         }
     }
 
     async function markNewsAsRead(newsId) {
-        try {
-            const response = await fetch(`/api/news/read/${newsId}`, { method: 'POST' });
-            if (response.ok) {
-                newsItems = newsItems.map(newsItem => (newsItem.id === newsId ? { ...newsItem, has_read: 1 } : newsItem));
-            } else {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Server responded with an error');
-            }
-        } catch (error) {
-            toast.error('An error occurred: ' + error.message);
+    try {
+        const response = await fetch(`/api/news/read/${newsId}`, { method: 'POST' });
+        if (!response.ok) {
+            throw new Error('Server responded with an error');
         }
+        newsItems = newsItems.map(newsItem => 
+            newsItem.id === newsId ? { ...newsItem, has_read: 1 } : newsItem
+        );
+    } catch (error) {
+        toast.error('An error occurred: ' + error.message);
     }
+}
+
 
     function getTotalPages() {
         return Math.ceil(newsItems.length / itemsPerPage);
